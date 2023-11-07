@@ -1,0 +1,953 @@
+---
+title: "S4"
+author: "Ian Hajnosz"
+date: "2023-11-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+##### APIM Test Code
+What I thiiink is the freely estimated model
+```{r}
+base.m1 <- '
+
+  #####################
+  # MEASUREMENT MODEL #
+  #####################
+  
+  ####### ACTOR ######
+  
+  # Factor models for km at 14 waves (Constrained)
+  AFkm1 =~ Akm1_t1 + Akm4_t1 + Akm5_t1 + Akm6_t1
+  AFkm2 =~ Akm1_t2 + Akm4_t2 + Akm5_t2 + Akm6_t2
+  AFkm3 =~ Akm1_t3 + Akm4_t3 + Akm5_t3 + Akm6_t3
+  AFkm4 =~ Akm1_t4 + Akm4_t4 + Akm5_t4 + Akm6_t4
+  AFkm5 =~ Akm1_t5 + Akm4_t5 + Akm5_t5 + Akm6_t5
+  AFkm6 =~ Akm1_t6 + Akm4_t6 + Akm5_t6 + Akm6_t6
+  AFkm7 =~ Akm1_t7 + Akm4_t7 + Akm5_t7 + Akm6_t7
+  AFkm8 =~ Akm1_t8 + Akm4_t8 + Akm5_t8 + Akm6_t8
+  AFkm9 =~ Akm1_t9 + Akm4_t9 + Akm5_t9 + Akm6_t9
+  AFkm10 =~ Akm1_t10 + Akm4_t10 + Akm5_t10 + Akm6_t10
+  AFkm11 =~ Akm1_t11 + Akm4_t11 + Akm5_t11 + Akm6_t11
+  AFkm12 =~ Akm1_t12 + Akm4_t12 + Akm5_t12 + Akm6_t12
+  AFkm13 =~ Akm1_t13 + Akm4_t13 + Akm5_t13 + Akm6_t13
+  AFkm14 =~ Akm1_t14 + Akm4_t14 + Akm5_t14 + Akm6_t14
+  
+  
+  # Factor models for ppr at 14 waves (Constrained)
+  AFppr1 =~ Appr1_t1 + Appr2_t1 + Appr3_t1 + Appr4_t1
+  AFppr2 =~ Appr1_t2 + Appr2_t2 + Appr3_t2 + Appr4_t2
+  AFppr3 =~ Appr1_t3 + Appr2_t3 + Appr3_t3 + Appr4_t3
+  AFppr4 =~ Appr1_t4 + Appr2_t4 + Appr3_t4 + Appr4_t4
+  AFppr5 =~ Appr1_t5 + Appr2_t5 + Appr3_t5 + Appr4_t5
+  AFppr6 =~ Appr1_t6 + Appr2_t6 + Appr3_t6 + Appr4_t6
+  AFppr7 =~ Appr1_t7 + Appr2_t7 + Appr3_t7 + Appr4_t7
+  AFppr8 =~ Appr1_t8 + Appr2_t8 + Appr3_t8 + Appr4_t8
+  AFppr9 =~ Appr1_t9 + Appr2_t9 + Appr3_t9 + Appr4_t9
+  AFppr10 =~ Appr1_t10 + Appr2_t10 + Appr3_t10 + Appr4_t10
+  AFppr11 =~ Appr1_t11 + Appr2_t11 + Appr3_t11 + Appr4_t11
+  AFppr12 =~ Appr1_t12 + Appr2_t12 + Appr3_t12 + Appr4_t12
+  AFppr13 =~ Appr1_t13 + Appr2_t13 + Appr3_t13 + Appr4_t13
+  AFppr14 =~ Appr1_t14 + Appr2_t14 + Appr3_t14 + Appr4_t14
+  
+  
+   ####### Partner ######
+  #NOTE: Same constraints as the actor imposed here because the partners are indistinguishable--who is "Actor" and "Partner" for a given couple is arbitrary. E.g. the alternative does not make sense--that all actors have a particular loading of their factors or regression effects, while the partners are different (again, since actor and partner does not hold inherent meaning, like male/female or child/parent, we would not expect those parameters to deviate consistently across the entire sample)
+  
+  # Factor models for km at 14 waves (Constrained)
+  PFkm1 =~ Pkm1_t1 + Pkm4_t1 + Pkm5_t1 + Pkm6_t1
+  PFkm2 =~ Pkm1_t2 + Pkm4_t2 + Pkm5_t2 + Pkm6_t2
+  PFkm3 =~ Pkm1_t3 + Pkm4_t3 + Pkm5_t3 + Pkm6_t3
+  PFkm4 =~ Pkm1_t4 + Pkm4_t4 + Pkm5_t4 + Pkm6_t4
+  PFkm5 =~ Pkm1_t5 + Pkm4_t5 + Pkm5_t5 + Pkm6_t5
+  PFkm6 =~ Pkm1_t6 + Pkm4_t6 + Pkm5_t6 + Pkm6_t6
+  PFkm7 =~ Pkm1_t7 + Pkm4_t7 + Pkm5_t7 + Pkm6_t7
+  PFkm8 =~ Pkm1_t8 + Pkm4_t8 + Pkm5_t8 + Pkm6_t8
+  PFkm9 =~ Pkm1_t9 + Pkm4_t9 + Pkm5_t9 + Pkm6_t9
+  PFkm10 =~ Pkm1_t10 + Pkm4_t10 + Pkm5_t10 + Pkm6_t10
+  PFkm11 =~ Pkm1_t11 + Pkm4_t11 + Pkm5_t11 + Pkm6_t11
+  PFkm12 =~ Pkm1_t12 + Pkm4_t12 + Pkm5_t12 + Pkm6_t12
+  PFkm13 =~ Pkm1_t13 + Pkm4_t13 + Pkm5_t13 + Pkm6_t13
+  PFkm14 =~ Pkm1_t14 + Pkm4_t14 + Pkm5_t14 + Pkm6_t14
+  
+  
+  # Factor models for ppr at 14 waves (Constrained)
+  PFppr1 =~ Pppr1_t1 + Pppr2_t1 + Pppr3_t1 + Pppr4_t1
+  PFppr2 =~ Pppr1_t2 + Pppr2_t2 + Pppr3_t2 + Pppr4_t2
+  PFppr3 =~ Pppr1_t3 + Pppr2_t3 + Pppr3_t3 + Pppr4_t3
+  PFppr4 =~ Pppr1_t4 + Pppr2_t4 + Pppr3_t4 + Pppr4_t4
+  PFppr5 =~ Pppr1_t5 + Pppr2_t5 + Pppr3_t5 + Pppr4_t5
+  PFppr6 =~ Pppr1_t6 + Pppr2_t6 + Pppr3_t6 + Pppr4_t6
+  PFppr7 =~ Pppr1_t7 + Pppr2_t7 + Pppr3_t7 + Pppr4_t7
+  PFppr8 =~ Pppr1_t8 + Pppr2_t8 + Pppr3_t8 + Pppr4_t8
+  PFppr9 =~ Pppr1_t9 + Pppr2_t9 + Pppr3_t9 + Pppr4_t9
+  PFppr10 =~ Pppr1_t10 + Pppr2_t10 + Pppr3_t10 + Pppr4_t10
+  PFppr11 =~ Pppr1_t11 + Pppr2_t11 + Pppr3_t11 + Pppr4_t11
+  PFppr12 =~ Pppr1_t12 + Pppr2_t12 + Pppr3_t12 + Pppr4_t12
+  PFppr13 =~ Pppr1_t13 + Pppr2_t13 + Pppr3_t13 + Pppr4_t13
+  PFppr14 =~ Pppr1_t14 + Pppr2_t14 + Pppr3_t14 + Pppr4_t14
+  
+  
+  
+  ################
+  # BETWEEN PART #
+  ################
+  
+  
+  # Create between factors (RIs)
+  ARIkm =~ 1*AFkm1 + 1*AFkm2 + 1*AFkm3 + 1*AFkm4 + 1*AFkm5 + 1*AFkm6 + 1*AFkm7 + 1*AFkm8 + 1*AFkm9 + 1*AFkm10 + 1*AFkm11 + 1*AFkm12 + 1*AFkm13 + 1*AFkm14
+  ARIppr =~ 1*AFppr1 + 1*AFppr2 + 1*AFppr3 + 1*AFppr4 + 1*AFppr5 + 1*AFppr6 + 1*AFppr7 + 1*AFppr8 + 1*AFppr9 + 1*AFppr10 + 1*AFppr11 + 1*AFppr12 + 1*AFppr13 + 1*AFppr14
+  PRIkm =~ 1*PFkm1 + 1*PFkm2 + 1*PFkm3 + 1*PFkm4 + 1*PFkm5 + 1*PFkm6 + 1*PFkm7 + 1*PFkm8 + 1*PFkm9 + 1*PFkm10 + 1*PFkm11 + 1*PFkm12 + 1*PFkm13 + 1*PFkm14
+  PRIppr =~ 1*PFppr1 + 1*PFppr2 + 1*PFppr3 + 1*PFppr4 + 1*PFppr5 + 1*PFppr6 + 1*PFppr7 + 1*PFppr8 + 1*PFppr9 + 1*PFppr10 + 1*PFppr11 + 1*PFppr12 + 1*PFppr13 + 1*PFppr14
+  
+  # Set residual variances of all Fkm and Fppr vars to 0
+  # I think this specifies all variance of the factors goes to either w/n or b/n
+  AFkm1 ~~ 0*AFkm1
+  AFkm2 ~~ 0*AFkm2
+  AFkm3 ~~ 0*AFkm3
+  AFkm4 ~~ 0*AFkm4
+  AFkm5 ~~ 0*AFkm5
+  AFkm6 ~~ 0*AFkm6
+  AFkm7 ~~ 0*AFkm7
+  AFkm8 ~~ 0*AFkm8
+  AFkm9 ~~ 0*AFkm9
+  AFkm10 ~~ 0*AFkm10
+  AFkm11 ~~ 0*AFkm11
+  AFkm12 ~~ 0*AFkm12
+  AFkm13 ~~ 0*AFkm13
+  AFkm14 ~~ 0*AFkm14
+  AFppr1 ~~ 0*AFppr1
+  AFppr2 ~~ 0*AFppr2
+  AFppr3 ~~ 0*AFppr3
+  AFppr4 ~~ 0*AFppr4
+  AFppr5 ~~ 0*AFppr5
+  AFppr6 ~~ 0*AFppr6
+  AFppr7 ~~ 0*AFppr7
+  AFppr8 ~~ 0*AFppr8
+  AFppr9 ~~ 0*AFppr9
+  AFppr10 ~~ 0*AFppr10
+  AFppr11 ~~ 0*AFppr11
+  AFppr12 ~~ 0*AFppr12
+  AFppr13 ~~ 0*AFppr13
+  AFppr14 ~~ 0*AFppr14
+  
+  PFkm1 ~~ 0*PFkm1
+  PFkm2 ~~ 0*PFkm2
+  PFkm3 ~~ 0*PFkm3
+  PFkm4 ~~ 0*PFkm4
+  PFkm5 ~~ 0*PFkm5
+  PFkm6 ~~ 0*PFkm6
+  PFkm7 ~~ 0*PFkm7
+  PFkm8 ~~ 0*PFkm8
+  PFkm9 ~~ 0*PFkm9
+  PFkm10 ~~ 0*PFkm10
+  PFkm11 ~~ 0*PFkm11
+  PFkm12 ~~ 0*PFkm12
+  PFkm13 ~~ 0*PFkm13
+  PFkm14 ~~ 0*PFkm14
+  PFppr1 ~~ 0*PFppr1
+  PFppr2 ~~ 0*PFppr2
+  PFppr3 ~~ 0*PFppr3
+  PFppr4 ~~ 0*PFppr4
+  PFppr5 ~~ 0*PFppr5
+  PFppr6 ~~ 0*PFppr6
+  PFppr7 ~~ 0*PFppr7
+  PFppr8 ~~ 0*PFppr8
+  PFppr9 ~~ 0*PFppr9
+  PFppr10 ~~ 0*PFppr10
+  PFppr11 ~~ 0*PFppr11
+  PFppr12 ~~ 0*PFppr12
+  PFppr13 ~~ 0*PFppr13
+  PFppr14 ~~ 0*PFppr14
+
+
+  ###############
+  # WITHIN PART #
+  ###############
+
+  # Create within-components
+  AWFkm1 =~ 1*AFkm1
+  AWFkm2 =~ 1*AFkm2
+  AWFkm3 =~ 1*AFkm3
+  AWFkm4 =~ 1*AFkm4
+  AWFkm5 =~ 1*AFkm5
+  AWFkm6 =~ 1*AFkm6
+  AWFkm7 =~ 1*AFkm7
+  AWFkm8 =~ 1*AFkm8
+  AWFkm9 =~ 1*AFkm9
+  AWFkm10 =~ 1*AFkm10
+  AWFkm11 =~ 1*AFkm11
+  AWFkm12 =~ 1*AFkm12
+  AWFkm13 =~ 1*AFkm13
+  AWFkm14 =~ 1*AFkm14
+  
+  AWFppr1 =~ 1*AFppr1
+  AWFppr2 =~ 1*AFppr2
+  AWFppr3 =~ 1*AFppr3
+  AWFppr4 =~ 1*AFppr4
+  AWFppr5 =~ 1*AFppr5
+  AWFppr6 =~ 1*AFppr6
+  AWFppr7 =~ 1*AFppr7
+  AWFppr8 =~ 1*AFppr8
+  AWFppr9 =~ 1*AFppr9
+  AWFppr10 =~ 1*AFppr10
+  AWFppr11 =~ 1*AFppr11
+  AWFppr12 =~ 1*AFppr12
+  AWFppr13 =~ 1*AFppr13
+  AWFppr14 =~ 1*AFppr14
+  
+  PWFkm1 =~ 1*PFkm1
+  PWFkm2 =~ 1*PFkm2
+  PWFkm3 =~ 1*PFkm3
+  PWFkm4 =~ 1*PFkm4
+  PWFkm5 =~ 1*PFkm5
+  PWFkm6 =~ 1*PFkm6
+  PWFkm7 =~ 1*PFkm7
+  PWFkm8 =~ 1*PFkm8
+  PWFkm9 =~ 1*PFkm9
+  PWFkm10 =~ 1*PFkm10
+  PWFkm11 =~ 1*PFkm11
+  PWFkm12 =~ 1*PFkm12
+  PWFkm13 =~ 1*PFkm13
+  PWFkm14 =~ 1*PFkm14
+  
+  PWFppr1 =~ 1*PFppr1
+  PWFppr2 =~ 1*PFppr2
+  PWFppr3 =~ 1*PFppr3
+  PWFppr4 =~ 1*PFppr4
+  PWFppr5 =~ 1*PFppr5
+  PWFppr6 =~ 1*PFppr6
+  PWFppr7 =~ 1*PFppr7
+  PWFppr8 =~ 1*PFppr8
+  PWFppr9 =~ 1*PFppr9
+  PWFppr10 =~ 1*PFppr10
+  PWFppr11 =~ 1*PFppr11
+  PWFppr12 =~ 1*PFppr12
+  PWFppr13 =~ 1*PFppr13
+  PWFppr14 =~ 1*PFppr14
+  
+  
+  # Specify lagged effects between within-person centered latent variables
+  AWFkm2 + AWFppr2 ~ AWFkm1 + AWFppr1 + PWFkm1 + PWFppr1 
+  AWFkm3 + AWFppr3 ~ AWFkm2 + AWFppr2 + PWFkm2 + PWFppr2
+  AWFkm4 + AWFppr4 ~ AWFkm3 + AWFppr3 + PWFkm3 + PWFppr3
+  AWFkm5 + AWFppr5 ~ AWFkm4 + AWFppr4 + PWFkm4 + PWFppr4
+  AWFkm6 + AWFppr6 ~ AWFkm5 + AWFppr5 + PWFkm5 + PWFppr5
+  AWFkm7 + AWFppr7 ~ AWFkm6 + AWFppr6 + PWFkm6 + PWFppr6 
+  AWFkm8 + AWFppr8 ~ AWFkm7 + AWFppr7 + PWFkm7 + PWFppr7
+  AWFkm9 + AWFppr9 ~ AWFkm8 + AWFppr8 + PWFkm8 + PWFppr8
+  AWFkm10 + AWFppr10 ~ AWFkm9 + AWFppr9 + PWFkm9 + PWFppr9
+  AWFkm11 + AWFppr11 ~ AWFkm10 + AWFppr10 + PWFkm10 + PWFppr10
+  AWFkm12 + AWFppr12 ~ AWFkm11 + AWFppr11 + PWFkm11 + PWFppr11
+  AWFkm13 + AWFppr13 ~ AWFkm12 + AWFppr12 + PWFkm12 + PWFppr12
+  AWFkm14 + AWFppr14 ~ AWFkm13 + AWFppr13 + PWFkm13 + PWFppr13
+  
+  
+  # Estimate correlations within same wave
+  AWFkm1 ~~ s*AWFppr1 + t*PWFkm1 + u*PWFppr1 
+  AWFkm2 ~~ s*AWFppr2 + t*PWFkm2 + u*PWFppr2
+  AWFkm3 ~~ s*AWFppr3 + t*PWFkm3 + u*PWFppr3
+  AWFkm4 ~~ s*AWFppr4 + t*PWFkm4 + u*PWFppr4
+  AWFkm5 ~~ s*AWFppr5 + t*PWFkm5 + u*PWFppr5
+  AWFkm6 ~~ s*AWFppr6 + t*PWFkm6 + u*PWFppr6
+  AWFkm7 ~~ s*AWFppr7 + t*PWFkm7 + u*PWFppr7
+  AWFkm8 ~~ s*AWFppr8 + t*PWFkm8 + u*PWFppr8
+  AWFkm9 ~~ s*AWFppr9 + t*PWFkm9 + u*PWFppr9
+  AWFkm10 ~~ s*AWFppr10 + t*PWFkm10 + u*PWFppr10
+  AWFkm11 ~~ s*AWFppr11 + t*PWFkm11 + u*PWFppr11
+  AWFkm12 ~~ s*AWFppr12 + t*PWFkm12 + u*PWFppr12
+  AWFkm13 ~~ s*AWFppr13 + t*PWFkm13 + u*PWFppr13
+  AWFkm14 ~~ s*AWFppr14 + t*PWFkm14 + u*PWFppr14
+  
+  PWFkm1 ~~ v*AWFppr1 + w*PWFppr1 
+  PWFkm2 ~~ v*AWFppr2 + w*PWFppr2
+  PWFkm3 ~~ v*AWFppr3 + w*PWFppr3
+  PWFkm4 ~~ v*AWFppr4 + w*PWFppr4
+  PWFkm5 ~~ v*AWFppr5 + w*PWFppr5
+  PWFkm6 ~~ v*AWFppr6 + w*PWFppr6
+  PWFkm7 ~~ v*AWFppr7 + w*PWFppr7
+  PWFkm8 ~~ v*AWFppr8 + w*PWFppr8
+  PWFkm9 ~~ v*AWFppr9 + w*PWFppr9
+  PWFkm10 ~~ v*AWFppr10 + w*PWFppr10
+  PWFkm11 ~~ v*AWFppr11 + w*PWFppr11
+  PWFkm12 ~~ v*AWFppr12 + w*PWFppr12
+  PWFkm13 ~~ v*AWFppr13 + w*PWFppr13
+  PWFkm14 ~~ v*AWFppr14 + w*PWFppr14
+  
+  AWFppr1 ~~ x*PWFppr1 
+  AWFppr2 ~~ x*PWFppr2
+  AWFppr3 ~~ x*PWFppr3
+  AWFppr4 ~~ x*PWFppr4
+  AWFppr5 ~~ x*PWFppr5
+  AWFppr6 ~~ x*PWFppr6
+  AWFppr7 ~~ x*PWFppr7
+  AWFppr8 ~~ x*PWFppr8
+  AWFppr9 ~~ x*PWFppr9
+  AWFppr10 ~~ x*PWFppr10
+  AWFppr11 ~~ x*PWFppr11
+  AWFppr12 ~~ x*PWFppr12
+  AWFppr13 ~~ x*PWFppr13
+  AWFppr14 ~~ x*PWFppr14
+  
+  
+  ##########################
+  # ADDITIONAL CONSTRAINTS #
+  ##########################
+  
+  # Set correlations between between-factors (RIs) and within-factors at wave 1 at 0
+  ARIkm + ARIppr + PRIkm + PRIppr ~~ 0*AWFkm1 + 0*AWFppr1 + 0*PWFkm1 + 0*PWFppr1
+  
+'
+
+
+base.m1.fit <- cfa(base.m1,
+                   data = dfSEM,
+                   std.lv = T,
+                   missing = "ML"
+                   )
+summary(base.m1.fit,fit.measures = T, standardized =T, ci = T)
+```
+
+
+Weak factor invariance model
+```{r}
+weak.m1 <- '
+
+  #####################
+  # MEASUREMENT MODEL #
+  #####################
+  
+  ####### ACTOR ######
+  
+  # Factor models for km at 14 waves (Constrained)
+  AFkm1 =~ a*Akm1_t1 + d*Akm4_t1 + e*Akm5_t1 + f*Akm6_t1
+  AFkm2 =~ a*Akm1_t2 + d*Akm4_t2 + e*Akm5_t2 + f*Akm6_t2
+  AFkm3 =~ a*Akm1_t3 + d*Akm4_t3 + e*Akm5_t3 + f*Akm6_t3
+  AFkm4 =~ a*Akm1_t4 + d*Akm4_t4 + e*Akm5_t4 + f*Akm6_t4
+  AFkm5 =~ a*Akm1_t5 + d*Akm4_t5 + e*Akm5_t5 + f*Akm6_t5
+  AFkm6 =~ a*Akm1_t6 + d*Akm4_t6 + e*Akm5_t6 + f*Akm6_t6
+  AFkm7 =~ a*Akm1_t7 + d*Akm4_t7 + e*Akm5_t7 + f*Akm6_t7
+  AFkm8 =~ a*Akm1_t8 + d*Akm4_t8 + e*Akm5_t8 + f*Akm6_t8
+  AFkm9 =~ a*Akm1_t9 + d*Akm4_t9 + e*Akm5_t9 + f*Akm6_t9
+  AFkm10 =~ a*Akm1_t10 + d*Akm4_t10 + e*Akm5_t10 + f*Akm6_t10
+  AFkm11 =~ a*Akm1_t11 + d*Akm4_t11 + e*Akm5_t11 + f*Akm6_t11
+  AFkm12 =~ a*Akm1_t12 + d*Akm4_t12 + e*Akm5_t12 + f*Akm6_t12
+  AFkm13 =~ a*Akm1_t13 + d*Akm4_t13 + e*Akm5_t13 + f*Akm6_t13
+  AFkm14 =~ a*Akm1_t14 + d*Akm4_t14 + e*Akm5_t14 + f*Akm6_t14
+  
+  
+  # Factor models for ppr at 14 waves (Constrained)
+  AFppr1 =~ g*Appr1_t1 + h*Appr2_t1 + i*Appr3_t1 + j*Appr4_t1
+  AFppr2 =~ g*Appr1_t2 + h*Appr2_t2 + i*Appr3_t2 + j*Appr4_t2
+  AFppr3 =~ g*Appr1_t3 + h*Appr2_t3 + i*Appr3_t3 + j*Appr4_t3
+  AFppr4 =~ g*Appr1_t4 + h*Appr2_t4 + i*Appr3_t4 + j*Appr4_t4
+  AFppr5 =~ g*Appr1_t5 + h*Appr2_t5 + i*Appr3_t5 + j*Appr4_t5
+  AFppr6 =~ g*Appr1_t6 + h*Appr2_t6 + i*Appr3_t6 + j*Appr4_t6
+  AFppr7 =~ g*Appr1_t7 + h*Appr2_t7 + i*Appr3_t7 + j*Appr4_t7
+  AFppr8 =~ g*Appr1_t8 + h*Appr2_t8 + i*Appr3_t8 + j*Appr4_t8
+  AFppr9 =~ g*Appr1_t9 + h*Appr2_t9 + i*Appr3_t9 + j*Appr4_t9
+  AFppr10 =~ g*Appr1_t10 + h*Appr2_t10 + i*Appr3_t10 + j*Appr4_t10
+  AFppr11 =~ g*Appr1_t11 + h*Appr2_t11 + i*Appr3_t11 + j*Appr4_t11
+  AFppr12 =~ g*Appr1_t12 + h*Appr2_t12 + i*Appr3_t12 + j*Appr4_t12
+  AFppr13 =~ g*Appr1_t13 + h*Appr2_t13 + i*Appr3_t13 + j*Appr4_t13
+  AFppr14 =~ g*Appr1_t14 + h*Appr2_t14 + i*Appr3_t14 + j*Appr4_t14
+  
+  
+   ####### Partner ######
+  #NOTE: Same constraints as the actor imposed here because the partners are indistinguishable--who is "Actor" and "Partner" for a given couple is arbitrary. E.g. the alternative does not make sense--that all actors have a particular loading of their factors or regression effects, while the partners are different (again, since actor and partner does not hold inherent meaning, like male/female or child/parent, we would not expect those parameters to deviate consistently across the entire sample)
+  
+  # Factor models for km at 14 waves (Constrained)
+  PFkm1 =~ a*Pkm1_t1 + d*Pkm4_t1 + e*Pkm5_t1 + f*Pkm6_t1
+  PFkm2 =~ a*Pkm1_t2 + d*Pkm4_t2 + e*Pkm5_t2 + f*Pkm6_t2
+  PFkm3 =~ a*Pkm1_t3 + d*Pkm4_t3 + e*Pkm5_t3 + f*Pkm6_t3
+  PFkm4 =~ a*Pkm1_t4 + d*Pkm4_t4 + e*Pkm5_t4 + f*Pkm6_t4
+  PFkm5 =~ a*Pkm1_t5 + d*Pkm4_t5 + e*Pkm5_t5 + f*Pkm6_t5
+  PFkm6 =~ a*Pkm1_t6 + d*Pkm4_t6 + e*Pkm5_t6 + f*Pkm6_t6
+  PFkm7 =~ a*Pkm1_t7 + d*Pkm4_t7 + e*Pkm5_t7 + f*Pkm6_t7
+  PFkm8 =~ a*Pkm1_t8 + d*Pkm4_t8 + e*Pkm5_t8 + f*Pkm6_t8
+  PFkm9 =~ a*Pkm1_t9 + d*Pkm4_t9 + e*Pkm5_t9 + f*Pkm6_t9
+  PFkm10 =~ a*Pkm1_t10 + d*Pkm4_t10 + e*Pkm5_t10 + f*Pkm6_t10
+  PFkm11 =~ a*Pkm1_t11 + d*Pkm4_t11 + e*Pkm5_t11 + f*Pkm6_t11
+  PFkm12 =~ a*Pkm1_t12 + d*Pkm4_t12 + e*Pkm5_t12 + f*Pkm6_t12
+  PFkm13 =~ a*Pkm1_t13 + d*Pkm4_t13 + e*Pkm5_t13 + f*Pkm6_t13
+  PFkm14 =~ a*Pkm1_t14 + d*Pkm4_t14 + e*Pkm5_t14 + f*Pkm6_t14
+  
+  
+  # Factor models for ppr at 14 waves (Constrained)
+  PFppr1 =~ g*Pppr1_t1 + h*Pppr2_t1 + i*Pppr3_t1 + j*Pppr4_t1
+  PFppr2 =~ g*Pppr1_t2 + h*Pppr2_t2 + i*Pppr3_t2 + j*Pppr4_t2
+  PFppr3 =~ g*Pppr1_t3 + h*Pppr2_t3 + i*Pppr3_t3 + j*Pppr4_t3
+  PFppr4 =~ g*Pppr1_t4 + h*Pppr2_t4 + i*Pppr3_t4 + j*Pppr4_t4
+  PFppr5 =~ g*Pppr1_t5 + h*Pppr2_t5 + i*Pppr3_t5 + j*Pppr4_t5
+  PFppr6 =~ g*Pppr1_t6 + h*Pppr2_t6 + i*Pppr3_t6 + j*Pppr4_t6
+  PFppr7 =~ g*Pppr1_t7 + h*Pppr2_t7 + i*Pppr3_t7 + j*Pppr4_t7
+  PFppr8 =~ g*Pppr1_t8 + h*Pppr2_t8 + i*Pppr3_t8 + j*Pppr4_t8
+  PFppr9 =~ g*Pppr1_t9 + h*Pppr2_t9 + i*Pppr3_t9 + j*Pppr4_t9
+  PFppr10 =~ g*Pppr1_t10 + h*Pppr2_t10 + i*Pppr3_t10 + j*Pppr4_t10
+  PFppr11 =~ g*Pppr1_t11 + h*Pppr2_t11 + i*Pppr3_t11 + j*Pppr4_t11
+  PFppr12 =~ g*Pppr1_t12 + h*Pppr2_t12 + i*Pppr3_t12 + j*Pppr4_t12
+  PFppr13 =~ g*Pppr1_t13 + h*Pppr2_t13 + i*Pppr3_t13 + j*Pppr4_t13
+  PFppr14 =~ g*Pppr1_t14 + h*Pppr2_t14 + i*Pppr3_t14 + j*Pppr4_t14
+  
+  
+  
+  ################
+  # BETWEEN PART #
+  ################
+  
+  
+  # Create between factors (RIs)
+  ARIkm =~ 1*AFkm1 + 1*AFkm2 + 1*AFkm3 + 1*AFkm4 + 1*AFkm5 + 1*AFkm6 + 1*AFkm7 + 1*AFkm8 + 1*AFkm9 + 1*AFkm10 + 1*AFkm11 + 1*AFkm12 + 1*AFkm13 + 1*AFkm14
+  ARIppr =~ 1*AFppr1 + 1*AFppr2 + 1*AFppr3 + 1*AFppr4 + 1*AFppr5 + 1*AFppr6 + 1*AFppr7 + 1*AFppr8 + 1*AFppr9 + 1*AFppr10 + 1*AFppr11 + 1*AFppr12 + 1*AFppr13 + 1*AFppr14
+  PRIkm =~ 1*PFkm1 + 1*PFkm2 + 1*PFkm3 + 1*PFkm4 + 1*PFkm5 + 1*PFkm6 + 1*PFkm7 + 1*PFkm8 + 1*PFkm9 + 1*PFkm10 + 1*PFkm11 + 1*PFkm12 + 1*PFkm13 + 1*PFkm14
+  PRIppr =~ 1*PFppr1 + 1*PFppr2 + 1*PFppr3 + 1*PFppr4 + 1*PFppr5 + 1*PFppr6 + 1*PFppr7 + 1*PFppr8 + 1*PFppr9 + 1*PFppr10 + 1*PFppr11 + 1*PFppr12 + 1*PFppr13 + 1*PFppr14
+  
+  # Set residual variances of all Fkm and Fppr vars to 0
+  # I think this specifies all variance of the factors goes to either w/n or b/n
+  AFkm1 ~~ 0*AFkm1
+  AFkm2 ~~ 0*AFkm2
+  AFkm3 ~~ 0*AFkm3
+  AFkm4 ~~ 0*AFkm4
+  AFkm5 ~~ 0*AFkm5
+  AFkm6 ~~ 0*AFkm6
+  AFkm7 ~~ 0*AFkm7
+  AFkm8 ~~ 0*AFkm8
+  AFkm9 ~~ 0*AFkm9
+  AFkm10 ~~ 0*AFkm10
+  AFkm11 ~~ 0*AFkm11
+  AFkm12 ~~ 0*AFkm12
+  AFkm13 ~~ 0*AFkm13
+  AFkm14 ~~ 0*AFkm14
+  AFppr1 ~~ 0*AFppr1
+  AFppr2 ~~ 0*AFppr2
+  AFppr3 ~~ 0*AFppr3
+  AFppr4 ~~ 0*AFppr4
+  AFppr5 ~~ 0*AFppr5
+  AFppr6 ~~ 0*AFppr6
+  AFppr7 ~~ 0*AFppr7
+  AFppr8 ~~ 0*AFppr8
+  AFppr9 ~~ 0*AFppr9
+  AFppr10 ~~ 0*AFppr10
+  AFppr11 ~~ 0*AFppr11
+  AFppr12 ~~ 0*AFppr12
+  AFppr13 ~~ 0*AFppr13
+  AFppr14 ~~ 0*AFppr14
+  
+  PFkm1 ~~ 0*PFkm1
+  PFkm2 ~~ 0*PFkm2
+  PFkm3 ~~ 0*PFkm3
+  PFkm4 ~~ 0*PFkm4
+  PFkm5 ~~ 0*PFkm5
+  PFkm6 ~~ 0*PFkm6
+  PFkm7 ~~ 0*PFkm7
+  PFkm8 ~~ 0*PFkm8
+  PFkm9 ~~ 0*PFkm9
+  PFkm10 ~~ 0*PFkm10
+  PFkm11 ~~ 0*PFkm11
+  PFkm12 ~~ 0*PFkm12
+  PFkm13 ~~ 0*PFkm13
+  PFkm14 ~~ 0*PFkm14
+  PFppr1 ~~ 0*PFppr1
+  PFppr2 ~~ 0*PFppr2
+  PFppr3 ~~ 0*PFppr3
+  PFppr4 ~~ 0*PFppr4
+  PFppr5 ~~ 0*PFppr5
+  PFppr6 ~~ 0*PFppr6
+  PFppr7 ~~ 0*PFppr7
+  PFppr8 ~~ 0*PFppr8
+  PFppr9 ~~ 0*PFppr9
+  PFppr10 ~~ 0*PFppr10
+  PFppr11 ~~ 0*PFppr11
+  PFppr12 ~~ 0*PFppr12
+  PFppr13 ~~ 0*PFppr13
+  PFppr14 ~~ 0*PFppr14
+
+
+  ###############
+  # WITHIN PART #
+  ###############
+
+  # Create within-components
+  AWFkm1 =~ 1*AFkm1
+  AWFkm2 =~ 1*AFkm2
+  AWFkm3 =~ 1*AFkm3
+  AWFkm4 =~ 1*AFkm4
+  AWFkm5 =~ 1*AFkm5
+  AWFkm6 =~ 1*AFkm6
+  AWFkm7 =~ 1*AFkm7
+  AWFkm8 =~ 1*AFkm8
+  AWFkm9 =~ 1*AFkm9
+  AWFkm10 =~ 1*AFkm10
+  AWFkm11 =~ 1*AFkm11
+  AWFkm12 =~ 1*AFkm12
+  AWFkm13 =~ 1*AFkm13
+  AWFkm14 =~ 1*AFkm14
+  
+  AWFppr1 =~ 1*AFppr1
+  AWFppr2 =~ 1*AFppr2
+  AWFppr3 =~ 1*AFppr3
+  AWFppr4 =~ 1*AFppr4
+  AWFppr5 =~ 1*AFppr5
+  AWFppr6 =~ 1*AFppr6
+  AWFppr7 =~ 1*AFppr7
+  AWFppr8 =~ 1*AFppr8
+  AWFppr9 =~ 1*AFppr9
+  AWFppr10 =~ 1*AFppr10
+  AWFppr11 =~ 1*AFppr11
+  AWFppr12 =~ 1*AFppr12
+  AWFppr13 =~ 1*AFppr13
+  AWFppr14 =~ 1*AFppr14
+  
+  PWFkm1 =~ 1*PFkm1
+  PWFkm2 =~ 1*PFkm2
+  PWFkm3 =~ 1*PFkm3
+  PWFkm4 =~ 1*PFkm4
+  PWFkm5 =~ 1*PFkm5
+  PWFkm6 =~ 1*PFkm6
+  PWFkm7 =~ 1*PFkm7
+  PWFkm8 =~ 1*PFkm8
+  PWFkm9 =~ 1*PFkm9
+  PWFkm10 =~ 1*PFkm10
+  PWFkm11 =~ 1*PFkm11
+  PWFkm12 =~ 1*PFkm12
+  PWFkm13 =~ 1*PFkm13
+  PWFkm14 =~ 1*PFkm14
+  
+  PWFppr1 =~ 1*PFppr1
+  PWFppr2 =~ 1*PFppr2
+  PWFppr3 =~ 1*PFppr3
+  PWFppr4 =~ 1*PFppr4
+  PWFppr5 =~ 1*PFppr5
+  PWFppr6 =~ 1*PFppr6
+  PWFppr7 =~ 1*PFppr7
+  PWFppr8 =~ 1*PFppr8
+  PWFppr9 =~ 1*PFppr9
+  PWFppr10 =~ 1*PFppr10
+  PWFppr11 =~ 1*PFppr11
+  PWFppr12 =~ 1*PFppr12
+  PWFppr13 =~ 1*PFppr13
+  PWFppr14 =~ 1*PFppr14
+  
+  
+  # Specify lagged effects between within-person centered latent variables
+  AWFkm2 + AWFppr2 ~ AWFkm1 + AWFppr1 + PWFkm1 + PWFppr1 
+  AWFkm3 + AWFppr3 ~ AWFkm2 + AWFppr2 + PWFkm2 + PWFppr2
+  AWFkm4 + AWFppr4 ~ AWFkm3 + AWFppr3 + PWFkm3 + PWFppr3
+  AWFkm5 + AWFppr5 ~ AWFkm4 + AWFppr4 + PWFkm4 + PWFppr4
+  AWFkm6 + AWFppr6 ~ AWFkm5 + AWFppr5 + PWFkm5 + PWFppr5
+  AWFkm7 + AWFppr7 ~ AWFkm6 + AWFppr6 + PWFkm6 + PWFppr6 
+  AWFkm8 + AWFppr8 ~ AWFkm7 + AWFppr7 + PWFkm7 + PWFppr7
+  AWFkm9 + AWFppr9 ~ AWFkm8 + AWFppr8 + PWFkm8 + PWFppr8
+  AWFkm10 + AWFppr10 ~ AWFkm9 + AWFppr9 + PWFkm9 + PWFppr9
+  AWFkm11 + AWFppr11 ~ AWFkm10 + AWFppr10 + PWFkm10 + PWFppr10
+  AWFkm12 + AWFppr12 ~ AWFkm11 + AWFppr11 + PWFkm11 + PWFppr11
+  AWFkm13 + AWFppr13 ~ AWFkm12 + AWFppr12 + PWFkm12 + PWFppr12
+  AWFkm14 + AWFppr14 ~ AWFkm13 + AWFppr13 + PWFkm13 + PWFppr13
+  
+  
+  # Estimate correlations within same wave
+  AWFkm1 ~~ s*AWFppr1 + t*PWFkm1 + u*PWFppr1 
+  AWFkm2 ~~ s*AWFppr2 + t*PWFkm2 + u*PWFppr2
+  AWFkm3 ~~ s*AWFppr3 + t*PWFkm3 + u*PWFppr3
+  AWFkm4 ~~ s*AWFppr4 + t*PWFkm4 + u*PWFppr4
+  AWFkm5 ~~ s*AWFppr5 + t*PWFkm5 + u*PWFppr5
+  AWFkm6 ~~ s*AWFppr6 + t*PWFkm6 + u*PWFppr6
+  AWFkm7 ~~ s*AWFppr7 + t*PWFkm7 + u*PWFppr7
+  AWFkm8 ~~ s*AWFppr8 + t*PWFkm8 + u*PWFppr8
+  AWFkm9 ~~ s*AWFppr9 + t*PWFkm9 + u*PWFppr9
+  AWFkm10 ~~ s*AWFppr10 + t*PWFkm10 + u*PWFppr10
+  AWFkm11 ~~ s*AWFppr11 + t*PWFkm11 + u*PWFppr11
+  AWFkm12 ~~ s*AWFppr12 + t*PWFkm12 + u*PWFppr12
+  AWFkm13 ~~ s*AWFppr13 + t*PWFkm13 + u*PWFppr13
+  AWFkm14 ~~ s*AWFppr14 + t*PWFkm14 + u*PWFppr14
+  
+  PWFkm1 ~~ v*AWFppr1 + w*PWFppr1 
+  PWFkm2 ~~ v*AWFppr2 + w*PWFppr2
+  PWFkm3 ~~ v*AWFppr3 + w*PWFppr3
+  PWFkm4 ~~ v*AWFppr4 + w*PWFppr4
+  PWFkm5 ~~ v*AWFppr5 + w*PWFppr5
+  PWFkm6 ~~ v*AWFppr6 + w*PWFppr6
+  PWFkm7 ~~ v*AWFppr7 + w*PWFppr7
+  PWFkm8 ~~ v*AWFppr8 + w*PWFppr8
+  PWFkm9 ~~ v*AWFppr9 + w*PWFppr9
+  PWFkm10 ~~ v*AWFppr10 + w*PWFppr10
+  PWFkm11 ~~ v*AWFppr11 + w*PWFppr11
+  PWFkm12 ~~ v*AWFppr12 + w*PWFppr12
+  PWFkm13 ~~ v*AWFppr13 + w*PWFppr13
+  PWFkm14 ~~ v*AWFppr14 + w*PWFppr14
+  
+  AWFppr1 ~~ x*PWFppr1 
+  AWFppr2 ~~ x*PWFppr2
+  AWFppr3 ~~ x*PWFppr3
+  AWFppr4 ~~ x*PWFppr4
+  AWFppr5 ~~ x*PWFppr5
+  AWFppr6 ~~ x*PWFppr6
+  AWFppr7 ~~ x*PWFppr7
+  AWFppr8 ~~ x*PWFppr8
+  AWFppr9 ~~ x*PWFppr9
+  AWFppr10 ~~ x*PWFppr10
+  AWFppr11 ~~ x*PWFppr11
+  AWFppr12 ~~ x*PWFppr12
+  AWFppr13 ~~ x*PWFppr13
+  AWFppr14 ~~ x*PWFppr14
+  
+  
+  ##########################
+  # ADDITIONAL CONSTRAINTS #
+  ##########################
+  
+  # Set correlations between between-factors (RIs) and within-factors at wave 1 at 0
+  ARIkm + ARIppr + PRIkm + PRIppr ~~ 0*AWFkm1 + 0*AWFppr1 + 0*PWFkm1 + 0*PWFppr1
+  
+'
+
+
+weak.m1.fit <- cfa(weak.m1,
+                   data = dfSEM,
+                   std.lv = T,
+                   missing = "ML"
+                   )
+summary(weak.m1.fit,fit.measures = T, standardized =T, ci = T)
+```
+
+
+Copying from the strong invariance model (the best one for S3). Build off of this one
+
+```{r}
+strong.m1 <- '
+
+  #####################
+  # MEASUREMENT MODEL #
+  #####################
+  
+  ####### ACTOR ######
+  
+  # Factor models for km at 14 waves (Constrained)
+  AFkm1 =~ a*Akm1_t1 + d*Akm4_t1 + e*Akm5_t1 + f*Akm6_t1
+  AFkm2 =~ a*Akm1_t2 + d*Akm4_t2 + e*Akm5_t2 + f*Akm6_t2
+  AFkm3 =~ a*Akm1_t3 + d*Akm4_t3 + e*Akm5_t3 + f*Akm6_t3
+  AFkm4 =~ a*Akm1_t4 + d*Akm4_t4 + e*Akm5_t4 + f*Akm6_t4
+  AFkm5 =~ a*Akm1_t5 + d*Akm4_t5 + e*Akm5_t5 + f*Akm6_t5
+  AFkm6 =~ a*Akm1_t6 + d*Akm4_t6 + e*Akm5_t6 + f*Akm6_t6
+  AFkm7 =~ a*Akm1_t7 + d*Akm4_t7 + e*Akm5_t7 + f*Akm6_t7
+  AFkm8 =~ a*Akm1_t8 + d*Akm4_t8 + e*Akm5_t8 + f*Akm6_t8
+  AFkm9 =~ a*Akm1_t9 + d*Akm4_t9 + e*Akm5_t9 + f*Akm6_t9
+  AFkm10 =~ a*Akm1_t10 + d*Akm4_t10 + e*Akm5_t10 + f*Akm6_t10
+  AFkm11 =~ a*Akm1_t11 + d*Akm4_t11 + e*Akm5_t11 + f*Akm6_t11
+  AFkm12 =~ a*Akm1_t12 + d*Akm4_t12 + e*Akm5_t12 + f*Akm6_t12
+  AFkm13 =~ a*Akm1_t13 + d*Akm4_t13 + e*Akm5_t13 + f*Akm6_t13
+  AFkm14 =~ a*Akm1_t14 + d*Akm4_t14 + e*Akm5_t14 + f*Akm6_t14
+  
+  
+  # Factor models for ppr at 14 waves (Constrained)
+  AFppr1 =~ g*Appr1_t1 + h*Appr2_t1 + i*Appr3_t1 + j*Appr4_t1
+  AFppr2 =~ g*Appr1_t2 + h*Appr2_t2 + i*Appr3_t2 + j*Appr4_t2
+  AFppr3 =~ g*Appr1_t3 + h*Appr2_t3 + i*Appr3_t3 + j*Appr4_t3
+  AFppr4 =~ g*Appr1_t4 + h*Appr2_t4 + i*Appr3_t4 + j*Appr4_t4
+  AFppr5 =~ g*Appr1_t5 + h*Appr2_t5 + i*Appr3_t5 + j*Appr4_t5
+  AFppr6 =~ g*Appr1_t6 + h*Appr2_t6 + i*Appr3_t6 + j*Appr4_t6
+  AFppr7 =~ g*Appr1_t7 + h*Appr2_t7 + i*Appr3_t7 + j*Appr4_t7
+  AFppr8 =~ g*Appr1_t8 + h*Appr2_t8 + i*Appr3_t8 + j*Appr4_t8
+  AFppr9 =~ g*Appr1_t9 + h*Appr2_t9 + i*Appr3_t9 + j*Appr4_t9
+  AFppr10 =~ g*Appr1_t10 + h*Appr2_t10 + i*Appr3_t10 + j*Appr4_t10
+  AFppr11 =~ g*Appr1_t11 + h*Appr2_t11 + i*Appr3_t11 + j*Appr4_t11
+  AFppr12 =~ g*Appr1_t12 + h*Appr2_t12 + i*Appr3_t12 + j*Appr4_t12
+  AFppr13 =~ g*Appr1_t13 + h*Appr2_t13 + i*Appr3_t13 + j*Appr4_t13
+  AFppr14 =~ g*Appr1_t14 + h*Appr2_t14 + i*Appr3_t14 + j*Appr4_t14
+  
+  
+  # Constrained intercepts over time (Strong invariance constraint)
+  Akm1_t1 + Akm1_t2 + Akm1_t3 + Akm1_t4 + Akm1_t5 + Akm1_t6 + Akm1_t7 + Akm1_t8 + Akm1_t9 + Akm1_t10 + Akm1_t11 + Akm1_t12 + Akm1_t13 + Akm1_t14  ~ k*1
+  Akm4_t1 + Akm4_t2 + Akm4_t3 + Akm4_t4 + Akm4_t5 + Akm4_t6 + Akm4_t7 + Akm4_t8 + Akm4_t9 + Akm4_t10 + Akm4_t11 + Akm4_t12 + Akm4_t13 + Akm4_t14 ~ l*1
+  Akm5_t1 + Akm5_t2 + Akm5_t3 + Akm5_t4 + Akm5_t5 + Akm5_t6 + Akm5_t7 + Akm5_t8 + Akm5_t9 + Akm5_t10 + Akm5_t11 + Akm5_t12 + Akm5_t13 + Akm5_t14 ~ m*1
+  Akm6_t1 + Akm6_t2 + Akm6_t3 + Akm6_t4 + Akm6_t5 + Akm6_t6 + Akm6_t7 + Akm6_t8 + Akm6_t9 + Akm6_t10 + Akm6_t11 + Akm6_t12 + Akm6_t13 + Akm6_t14 ~ n*1
+  
+  Appr1_t1 + Appr1_t2 + Appr1_t3 + Appr1_t4 + Appr1_t5 + Appr1_t6 + Appr1_t7 + Appr1_t8 + Appr1_t9 + Appr1_t10 + Appr1_t11 + Appr1_t12 + Appr1_t13 + Appr1_t14 ~ o*1
+  Appr2_t1 + Appr2_t2 + Appr2_t3 + Appr2_t4 + Appr2_t5 + Appr2_t6 + Appr2_t7 + Appr2_t8 + Appr2_t9 + Appr2_t10 + Appr2_t11 + Appr2_t12 + Appr2_t13 + Appr2_t14 ~ p*1
+  Appr3_t1 + Appr3_t2 + Appr3_t3 + Appr3_t4 + Appr3_t5 + Appr3_t6 + Appr3_t7 + Appr3_t8 + Appr3_t9 + Appr3_t10 + Appr3_t11 + Appr3_t12 + Appr3_t13 + Appr3_t14 ~ q*1
+  Appr4_t1 + Appr4_t2 + Appr4_t3 + Appr4_t4 + Appr4_t5 + Appr4_t6 + Appr4_t7 + Appr4_t8 + Appr4_t9 + Appr4_t10 + Appr4_t11 + Appr4_t12 + Appr4_t13 + Appr4_t14 ~ r*1
+  
+  
+  # Free latent means from t=2 onward (Strong invariance constraint: only do this in combination with constraints on intercepts, above)
+  AFkm2 + AFkm3 + AFkm4 + AFkm5 + AFkm6 + AFkm7 + AFkm8 + AFkm9 + AFkm10 + AFkm11 + AFkm12 + AFkm13 + AFkm14 + AFppr2 + AFppr3 + AFppr4 + AFppr5 + AFppr6 + AFppr7 + AFppr8 + AFppr9 + AFppr10 + AFppr11 + AFppr12 + AFppr13 + AFppr14 ~ 1
+  
+  ####### Partner ######
+  #NOTE: Same constraints as the actor imposed here because the partners are indistinguishable--who is "Actor" and "Partner" for a given couple is arbitrary. E.g. the alternative does not make sense--that all actors have a particular loading of their factors or regression effects, while the partners are different (again, since actor and partner does not hold inherent meaning, like male/female or child/parent, we would not expect those parameters to deviate consistently across the entire sample)
+  
+  # Factor models for km at 14 waves (Constrained)
+  PFkm1 =~ a*Pkm1_t1 + d*Pkm4_t1 + e*Pkm5_t1 + f*Pkm6_t1
+  PFkm2 =~ a*Pkm1_t2 + d*Pkm4_t2 + e*Pkm5_t2 + f*Pkm6_t2
+  PFkm3 =~ a*Pkm1_t3 + d*Pkm4_t3 + e*Pkm5_t3 + f*Pkm6_t3
+  PFkm4 =~ a*Pkm1_t4 + d*Pkm4_t4 + e*Pkm5_t4 + f*Pkm6_t4
+  PFkm5 =~ a*Pkm1_t5 + d*Pkm4_t5 + e*Pkm5_t5 + f*Pkm6_t5
+  PFkm6 =~ a*Pkm1_t6 + d*Pkm4_t6 + e*Pkm5_t6 + f*Pkm6_t6
+  PFkm7 =~ a*Pkm1_t7 + d*Pkm4_t7 + e*Pkm5_t7 + f*Pkm6_t7
+  PFkm8 =~ a*Pkm1_t8 + d*Pkm4_t8 + e*Pkm5_t8 + f*Pkm6_t8
+  PFkm9 =~ a*Pkm1_t9 + d*Pkm4_t9 + e*Pkm5_t9 + f*Pkm6_t9
+  PFkm10 =~ a*Pkm1_t10 + d*Pkm4_t10 + e*Pkm5_t10 + f*Pkm6_t10
+  PFkm11 =~ a*Pkm1_t11 + d*Pkm4_t11 + e*Pkm5_t11 + f*Pkm6_t11
+  PFkm12 =~ a*Pkm1_t12 + d*Pkm4_t12 + e*Pkm5_t12 + f*Pkm6_t12
+  PFkm13 =~ a*Pkm1_t13 + d*Pkm4_t13 + e*Pkm5_t13 + f*Pkm6_t13
+  PFkm14 =~ a*Pkm1_t14 + d*Pkm4_t14 + e*Pkm5_t14 + f*Pkm6_t14
+  
+  
+  # Factor models for ppr at 14 waves (Constrained)
+  PFppr1 =~ g*Pppr1_t1 + h*Pppr2_t1 + i*Pppr3_t1 + j*Pppr4_t1
+  PFppr2 =~ g*Pppr1_t2 + h*Pppr2_t2 + i*Pppr3_t2 + j*Pppr4_t2
+  PFppr3 =~ g*Pppr1_t3 + h*Pppr2_t3 + i*Pppr3_t3 + j*Pppr4_t3
+  PFppr4 =~ g*Pppr1_t4 + h*Pppr2_t4 + i*Pppr3_t4 + j*Pppr4_t4
+  PFppr5 =~ g*Pppr1_t5 + h*Pppr2_t5 + i*Pppr3_t5 + j*Pppr4_t5
+  PFppr6 =~ g*Pppr1_t6 + h*Pppr2_t6 + i*Pppr3_t6 + j*Pppr4_t6
+  PFppr7 =~ g*Pppr1_t7 + h*Pppr2_t7 + i*Pppr3_t7 + j*Pppr4_t7
+  PFppr8 =~ g*Pppr1_t8 + h*Pppr2_t8 + i*Pppr3_t8 + j*Pppr4_t8
+  PFppr9 =~ g*Pppr1_t9 + h*Pppr2_t9 + i*Pppr3_t9 + j*Pppr4_t9
+  PFppr10 =~ g*Pppr1_t10 + h*Pppr2_t10 + i*Pppr3_t10 + j*Pppr4_t10
+  PFppr11 =~ g*Pppr1_t11 + h*Pppr2_t11 + i*Pppr3_t11 + j*Pppr4_t11
+  PFppr12 =~ g*Pppr1_t12 + h*Pppr2_t12 + i*Pppr3_t12 + j*Pppr4_t12
+  PFppr13 =~ g*Pppr1_t13 + h*Pppr2_t13 + i*Pppr3_t13 + j*Pppr4_t13
+  PFppr14 =~ g*Pppr1_t14 + h*Pppr2_t14 + i*Pppr3_t14 + j*Pppr4_t14
+  
+  
+  
+  # Constrained intercepts over time (Strong invariance constraint)
+  Pkm1_t1 + Pkm1_t2 + Pkm1_t3 + Pkm1_t4 + Pkm1_t5 + Pkm1_t6 + Pkm1_t7 + Pkm1_t8 + Pkm1_t9 + Pkm1_t10 + Pkm1_t11 + Pkm1_t12 + Pkm1_t13 + Pkm1_t14  ~ k*1
+  Pkm4_t1 + Pkm4_t2 + Pkm4_t3 + Pkm4_t4 + Pkm4_t5 + Pkm4_t6 + Pkm4_t7 + Pkm4_t8 + Pkm4_t9 + Pkm4_t10 + Pkm4_t11 + Pkm4_t12 + Pkm4_t13 + Pkm4_t14 ~ l*1
+  Pkm5_t1 + Pkm5_t2 + Pkm5_t3 + Pkm5_t4 + Pkm5_t5 + Pkm5_t6 + Pkm5_t7 + Pkm5_t8 + Pkm5_t9 + Pkm5_t10 + Pkm5_t11 + Pkm5_t12 + Pkm5_t13 + Pkm5_t14 ~ m*1
+  Pkm6_t1 + Pkm6_t2 + Pkm6_t3 + Pkm6_t4 + Pkm6_t5 + Pkm6_t6 + Pkm6_t7 + Pkm6_t8 + Pkm6_t9 + Pkm6_t10 + Pkm6_t11 + Pkm6_t12 + Pkm6_t13 + Pkm6_t14 ~ n*1
+  
+  Pppr1_t1 + Pppr1_t2 + Pppr1_t3 + Pppr1_t4 + Pppr1_t5 + Pppr1_t6 + Pppr1_t7 + Pppr1_t8 + Pppr1_t9 + Pppr1_t10 + Pppr1_t11 + Pppr1_t12 + Pppr1_t13 + Pppr1_t14 ~ o*1
+  Pppr2_t1 + Pppr2_t2 + Pppr2_t3 + Pppr2_t4 + Pppr2_t5 + Pppr2_t6 + Pppr2_t7 + Pppr2_t8 + Pppr2_t9 + Pppr2_t10 + Pppr2_t11 + Pppr2_t12 + Pppr2_t13 + Pppr2_t14 ~ p*1
+  Pppr3_t1 + Pppr3_t2 + Pppr3_t3 + Pppr3_t4 + Pppr3_t5 + Pppr3_t6 + Pppr3_t7 + Pppr3_t8 + Pppr3_t9 + Pppr3_t10 + Pppr3_t11 + Pppr3_t12 + Pppr3_t13 + Pppr3_t14 ~ q*1
+  Pppr4_t1 + Pppr4_t2 + Pppr4_t3 + Pppr4_t4 + Pppr4_t5 + Pppr4_t6 + Pppr4_t7 + Pppr4_t8 + Pppr4_t9 + Pppr4_t10 + Pppr4_t11 + Pppr4_t12 + Pppr4_t13 + Pppr4_t14 ~ r*1
+  
+  
+  
+  # Free latent means from t=2 onward (Strong invariance constraint: only do this in combination with constraints on intercepts, above)
+  PFkm2 + PFkm3 + PFkm4 + PFkm5 + PFkm6 + PFkm7 + PFkm8 + PFkm9 + PFkm10 + PFkm11 + PFkm12 + PFkm13 + PFkm14 + PFppr2 + PFppr3 + PFppr4 + PFppr5 + PFppr6 + PFppr7 + PFppr8 + PFppr9 + PFppr10 + PFppr11 + PFppr12 + PFppr13 + PFppr14 ~ 1  
+  
+  
+  
+  ################
+  # BETWEEN PART #
+  ################
+  
+  
+  # Create between factors (RIs)
+  ARIkm =~ 1*AFkm1 + 1*AFkm2 + 1*AFkm3 + 1*AFkm4 + 1*AFkm5 + 1*AFkm6 + 1*AFkm7 + 1*AFkm8 + 1*AFkm9 + 1*AFkm10 + 1*AFkm11 + 1*AFkm12 + 1*AFkm13 + 1*AFkm14
+  ARIppr =~ 1*AFppr1 + 1*AFppr2 + 1*AFppr3 + 1*AFppr4 + 1*AFppr5 + 1*AFppr6 + 1*AFppr7 + 1*AFppr8 + 1*AFppr9 + 1*AFppr10 + 1*AFppr11 + 1*AFppr12 + 1*AFppr13 + 1*AFppr14
+  PRIkm =~ 1*PFkm1 + 1*PFkm2 + 1*PFkm3 + 1*PFkm4 + 1*PFkm5 + 1*PFkm6 + 1*PFkm7 + 1*PFkm8 + 1*PFkm9 + 1*PFkm10 + 1*PFkm11 + 1*PFkm12 + 1*PFkm13 + 1*PFkm14
+  PRIppr =~ 1*PFppr1 + 1*PFppr2 + 1*PFppr3 + 1*PFppr4 + 1*PFppr5 + 1*PFppr6 + 1*PFppr7 + 1*PFppr8 + 1*PFppr9 + 1*PFppr10 + 1*PFppr11 + 1*PFppr12 + 1*PFppr13 + 1*PFppr14
+  
+  # Set residual variances of all Fkm and Fppr vars to 0
+  # I think this specifies all variance of the factors goes to either w/n or b/n
+  AFkm1 ~~ 0*AFkm1
+  AFkm2 ~~ 0*AFkm2
+  AFkm3 ~~ 0*AFkm3
+  AFkm4 ~~ 0*AFkm4
+  AFkm5 ~~ 0*AFkm5
+  AFkm6 ~~ 0*AFkm6
+  AFkm7 ~~ 0*AFkm7
+  AFkm8 ~~ 0*AFkm8
+  AFkm9 ~~ 0*AFkm9
+  AFkm10 ~~ 0*AFkm10
+  AFkm11 ~~ 0*AFkm11
+  AFkm12 ~~ 0*AFkm12
+  AFkm13 ~~ 0*AFkm13
+  AFkm14 ~~ 0*AFkm14
+  AFppr1 ~~ 0*AFppr1
+  AFppr2 ~~ 0*AFppr2
+  AFppr3 ~~ 0*AFppr3
+  AFppr4 ~~ 0*AFppr4
+  AFppr5 ~~ 0*AFppr5
+  AFppr6 ~~ 0*AFppr6
+  AFppr7 ~~ 0*AFppr7
+  AFppr8 ~~ 0*AFppr8
+  AFppr9 ~~ 0*AFppr9
+  AFppr10 ~~ 0*AFppr10
+  AFppr11 ~~ 0*AFppr11
+  AFppr12 ~~ 0*AFppr12
+  AFppr13 ~~ 0*AFppr13
+  AFppr14 ~~ 0*AFppr14
+  
+  PFkm1 ~~ 0*PFkm1
+  PFkm2 ~~ 0*PFkm2
+  PFkm3 ~~ 0*PFkm3
+  PFkm4 ~~ 0*PFkm4
+  PFkm5 ~~ 0*PFkm5
+  PFkm6 ~~ 0*PFkm6
+  PFkm7 ~~ 0*PFkm7
+  PFkm8 ~~ 0*PFkm8
+  PFkm9 ~~ 0*PFkm9
+  PFkm10 ~~ 0*PFkm10
+  PFkm11 ~~ 0*PFkm11
+  PFkm12 ~~ 0*PFkm12
+  PFkm13 ~~ 0*PFkm13
+  PFkm14 ~~ 0*PFkm14
+  PFppr1 ~~ 0*PFppr1
+  PFppr2 ~~ 0*PFppr2
+  PFppr3 ~~ 0*PFppr3
+  PFppr4 ~~ 0*PFppr4
+  PFppr5 ~~ 0*PFppr5
+  PFppr6 ~~ 0*PFppr6
+  PFppr7 ~~ 0*PFppr7
+  PFppr8 ~~ 0*PFppr8
+  PFppr9 ~~ 0*PFppr9
+  PFppr10 ~~ 0*PFppr10
+  PFppr11 ~~ 0*PFppr11
+  PFppr12 ~~ 0*PFppr12
+  PFppr13 ~~ 0*PFppr13
+  PFppr14 ~~ 0*PFppr14
+
+
+  ###############
+  # WITHIN PART #
+  ###############
+
+  # Create within-components
+  AWFkm1 =~ 1*AFkm1
+  AWFkm2 =~ 1*AFkm2
+  AWFkm3 =~ 1*AFkm3
+  AWFkm4 =~ 1*AFkm4
+  AWFkm5 =~ 1*AFkm5
+  AWFkm6 =~ 1*AFkm6
+  AWFkm7 =~ 1*AFkm7
+  AWFkm8 =~ 1*AFkm8
+  AWFkm9 =~ 1*AFkm9
+  AWFkm10 =~ 1*AFkm10
+  AWFkm11 =~ 1*AFkm11
+  AWFkm12 =~ 1*AFkm12
+  AWFkm13 =~ 1*AFkm13
+  AWFkm14 =~ 1*AFkm14
+  
+  AWFppr1 =~ 1*AFppr1
+  AWFppr2 =~ 1*AFppr2
+  AWFppr3 =~ 1*AFppr3
+  AWFppr4 =~ 1*AFppr4
+  AWFppr5 =~ 1*AFppr5
+  AWFppr6 =~ 1*AFppr6
+  AWFppr7 =~ 1*AFppr7
+  AWFppr8 =~ 1*AFppr8
+  AWFppr9 =~ 1*AFppr9
+  AWFppr10 =~ 1*AFppr10
+  AWFppr11 =~ 1*AFppr11
+  AWFppr12 =~ 1*AFppr12
+  AWFppr13 =~ 1*AFppr13
+  AWFppr14 =~ 1*AFppr14
+  
+  PWFkm1 =~ 1*PFkm1
+  PWFkm2 =~ 1*PFkm2
+  PWFkm3 =~ 1*PFkm3
+  PWFkm4 =~ 1*PFkm4
+  PWFkm5 =~ 1*PFkm5
+  PWFkm6 =~ 1*PFkm6
+  PWFkm7 =~ 1*PFkm7
+  PWFkm8 =~ 1*PFkm8
+  PWFkm9 =~ 1*PFkm9
+  PWFkm10 =~ 1*PFkm10
+  PWFkm11 =~ 1*PFkm11
+  PWFkm12 =~ 1*PFkm12
+  PWFkm13 =~ 1*PFkm13
+  PWFkm14 =~ 1*PFkm14
+  
+  PWFppr1 =~ 1*PFppr1
+  PWFppr2 =~ 1*PFppr2
+  PWFppr3 =~ 1*PFppr3
+  PWFppr4 =~ 1*PFppr4
+  PWFppr5 =~ 1*PFppr5
+  PWFppr6 =~ 1*PFppr6
+  PWFppr7 =~ 1*PFppr7
+  PWFppr8 =~ 1*PFppr8
+  PWFppr9 =~ 1*PFppr9
+  PWFppr10 =~ 1*PFppr10
+  PWFppr11 =~ 1*PFppr11
+  PWFppr12 =~ 1*PFppr12
+  PWFppr13 =~ 1*PFppr13
+  PWFppr14 =~ 1*PFppr14
+  
+  
+  # Specify lagged effects between within-person centered latent variables
+  AWFkm2 + AWFppr2 ~ AWFkm1 + AWFppr1 + PWFkm1 + PWFppr1 
+  AWFkm3 + AWFppr3 ~ AWFkm2 + AWFppr2 + PWFkm2 + PWFppr2
+  AWFkm4 + AWFppr4 ~ AWFkm3 + AWFppr3 + PWFkm3 + PWFppr3
+  AWFkm5 + AWFppr5 ~ AWFkm4 + AWFppr4 + PWFkm4 + PWFppr4
+  AWFkm6 + AWFppr6 ~ AWFkm5 + AWFppr5 + PWFkm5 + PWFppr5
+  AWFkm7 + AWFppr7 ~ AWFkm6 + AWFppr6 + PWFkm6 + PWFppr6 
+  AWFkm8 + AWFppr8 ~ AWFkm7 + AWFppr7 + PWFkm7 + PWFppr7
+  AWFkm9 + AWFppr9 ~ AWFkm8 + AWFppr8 + PWFkm8 + PWFppr8
+  AWFkm10 + AWFppr10 ~ AWFkm9 + AWFppr9 + PWFkm9 + PWFppr9
+  AWFkm11 + AWFppr11 ~ AWFkm10 + AWFppr10 + PWFkm10 + PWFppr10
+  AWFkm12 + AWFppr12 ~ AWFkm11 + AWFppr11 + PWFkm11 + PWFppr11
+  AWFkm13 + AWFppr13 ~ AWFkm12 + AWFppr12 + PWFkm12 + PWFppr12
+  AWFkm14 + AWFppr14 ~ AWFkm13 + AWFppr13 + PWFkm13 + PWFppr13
+  
+  
+  # Estimate correlations within same wave
+  AWFkm1 ~~ s*AWFppr1 + t*PWFkm1 + u*PWFppr1 
+  AWFkm2 ~~ s*AWFppr2 + t*PWFkm2 + u*PWFppr2
+  AWFkm3 ~~ s*AWFppr3 + t*PWFkm3 + u*PWFppr3
+  AWFkm4 ~~ s*AWFppr4 + t*PWFkm4 + u*PWFppr4
+  AWFkm5 ~~ s*AWFppr5 + t*PWFkm5 + u*PWFppr5
+  AWFkm6 ~~ s*AWFppr6 + t*PWFkm6 + u*PWFppr6
+  AWFkm7 ~~ s*AWFppr7 + t*PWFkm7 + u*PWFppr7
+  AWFkm8 ~~ s*AWFppr8 + t*PWFkm8 + u*PWFppr8
+  AWFkm9 ~~ s*AWFppr9 + t*PWFkm9 + u*PWFppr9
+  AWFkm10 ~~ s*AWFppr10 + t*PWFkm10 + u*PWFppr10
+  AWFkm11 ~~ s*AWFppr11 + t*PWFkm11 + u*PWFppr11
+  AWFkm12 ~~ s*AWFppr12 + t*PWFkm12 + u*PWFppr12
+  AWFkm13 ~~ s*AWFppr13 + t*PWFkm13 + u*PWFppr13
+  AWFkm14 ~~ s*AWFppr14 + t*PWFkm14 + u*PWFppr14
+  
+  PWFkm1 ~~ v*AWFppr1 + w*PWFppr1 
+  PWFkm2 ~~ v*AWFppr2 + w*PWFppr2
+  PWFkm3 ~~ v*AWFppr3 + w*PWFppr3
+  PWFkm4 ~~ v*AWFppr4 + w*PWFppr4
+  PWFkm5 ~~ v*AWFppr5 + w*PWFppr5
+  PWFkm6 ~~ v*AWFppr6 + w*PWFppr6
+  PWFkm7 ~~ v*AWFppr7 + w*PWFppr7
+  PWFkm8 ~~ v*AWFppr8 + w*PWFppr8
+  PWFkm9 ~~ v*AWFppr9 + w*PWFppr9
+  PWFkm10 ~~ v*AWFppr10 + w*PWFppr10
+  PWFkm11 ~~ v*AWFppr11 + w*PWFppr11
+  PWFkm12 ~~ v*AWFppr12 + w*PWFppr12
+  PWFkm13 ~~ v*AWFppr13 + w*PWFppr13
+  PWFkm14 ~~ v*AWFppr14 + w*PWFppr14
+  
+  AWFppr1 ~~ x*PWFppr1 
+  AWFppr2 ~~ x*PWFppr2
+  AWFppr3 ~~ x*PWFppr3
+  AWFppr4 ~~ x*PWFppr4
+  AWFppr5 ~~ x*PWFppr5
+  AWFppr6 ~~ x*PWFppr6
+  AWFppr7 ~~ x*PWFppr7
+  AWFppr8 ~~ x*PWFppr8
+  AWFppr9 ~~ x*PWFppr9
+  AWFppr10 ~~ x*PWFppr10
+  AWFppr11 ~~ x*PWFppr11
+  AWFppr12 ~~ x*PWFppr12
+  AWFppr13 ~~ x*PWFppr13
+  AWFppr14 ~~ x*PWFppr14
+  
+  
+  ##########################
+  # ADDITIONAL CONSTRAINTS #
+  ##########################
+  
+  # Set correlations between between-factors (RIs) and within-factors at wave 1 at 0
+  ARIkm + ARIppr + PRIkm + PRIppr ~~ 0*AWFkm1 + 0*AWFppr1 + 0*PWFkm1 + 0*PWFppr1
+  
+'
+
+
+strong.m1.fit <- cfa(strong.m1,
+                   data = dfSEM,
+                   std.lv = T,
+                   missing = "ML"
+                   )
+summary(strong.m1.fit,fit.measures = T, standardized =T, ci = T)
+```
+
