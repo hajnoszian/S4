@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Not sure where to put the correlated residuals part still...
 
 
 ##### APIM Test Code
