@@ -10,7 +10,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Not sure where to put the correlated residuals part still...
+If I understand the broad idea, to make this an APIM I need the partner effects and the correlated residuals per couple.
+1) I have the partner effects in
+2) the correlated residuals--these, according to Gistelinck et al (2019) image at least, come in at the X and Y end (at least on cross sectional data)
 
+Remember that in this format, we have each row is a COUPLE, not an individual. This means that already we have a per couple unit such that we don't need to cross-pollinate across rows, as it were. But it does mean we need to get all the individual items correlated over time, then the individuals to their partner
+
+The individuals are correlated across the period by their scores already by divying up their latent var variance exclusively to the between and within components, then letting those regress into each other across the period (along with their correlations).
+
+To get the actor/partner correlations in, at least PART of that is covered by the regressions and correlations to each other--actors and partners only have variance as explained by their within and between components, those components are regressed onto each other and allowed to correlate. 
+
+I thiiiiiink I also need to put in the measurement model somewhere that the residual error on those factors is correlated. I CANT do that on the factor, since I also specify those to be zero (to force variance into the between and within parts). So I might need to throw that into the items themselves? Thats the only extra layer I think I'd need to do/try--might be a comparison of models thing? (I don't think it should change much, other than the overall model fit, since the actual variance of interest is loaded into the factors--the item covariances shouldn't change the actual loadings and thus the subsequent effects)
+
+TLDR: I have at least part, if not all, of the correlations across the period and across the actor/partners by virtue of the 0 factor variance split into between/within components that autoregressive, cross-lag, and cross-correlate for each time point in the series. I MIGHT need to cross-correlate all of the items (before the factor) to their partners...(but we didn't need that in the og, individual RICLPM for their scores across time, which would suggest that all of the correlations are covered by the model specification already, which if I added the partners in completely, should ALSO be covered...)
 
 ##### APIM Test Code
 What I thiiink is the freely estimated model
