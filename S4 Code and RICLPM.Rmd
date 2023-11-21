@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+
 ##### Thoughts on partner effects
 I can't label the partners actor and partner, since the actor/partner label is really only relevant for the effects. I need to relabel those.
 I also need to make sure that these constraints are appropriate at the measurement and regression levels.
@@ -419,7 +421,7 @@ base.m1.fit <- cfa(base.m1,
 summary(base.m1.fit,fit.measures = T, standardized =T, ci = T)
 ```
 
-base.m1b is the same but just taking out those partner regressions that I thiiink are unnecessary, redundant calculations
+base.m1b is the same but just taking out those partner regressions that should be unnecessary, redundant calculations
 ```{r}
 base.m1b <- '
 
@@ -1331,7 +1333,7 @@ weak.m1 <- '
   Appr1_t14 ~~ Bppr1_t14; Appr4_t14 ~~ Bppr4_t14; Appr5_t14 ~~ Bppr5_t14 ; Appr6_t14 ~~ Bppr6_t14
   
   ################
-  # BETWEEN BART #
+  # BETWEEN PART #
   ################
   
   
