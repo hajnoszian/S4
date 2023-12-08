@@ -9,8 +9,874 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(haven)#for .sav loads
+library(tidyverse)
+library(ggplot2)
+library(viridis)
+library(gridExtra)
+library(lavaan)
+library(lme4)
+library(lmerTest)
+```
 
 
+# Loading Data
+
+```{r}
+dfI_II <- read_sav("D2P1_P2_Ian.sav")
+
+dfIII <- read_sav("D2P3_Ian.sav")
+```
+
+Will need to filter down dfI_II to just those who did the entire study. That way when merging, I can use dfI_II for demographics easier.
+```{r}
+ID0 <- dfI_II |> 
+  group_by(pID) |> 
+  count(pID) |> 
+  select(pID)#252 IDs in PhaseI_II at start
+
+ID1 <- dfIII |> 
+  group_by(pID) |> 
+  count(pID) |> 
+  select(pID)#252 IDs in PhaseIII at start
+```
+
+Checking mismatches
+```{r}
+all(unique(ID0$pID) == unique(ID1$pID)) #Yay! They are indeed all the same folks
+
+rm(ID0, ID1)#just to clean up
+```
+
+Keep from analysis:
+Using the keep in analysis column in dfI_II, use that as your filter for participants
+```{r}
+#Creating a list of ids to keep from dfI_II
+ids <- dfI_II |> 
+  filter(keep == 1) |> 
+  select(pID)
+
+#Checking to see if the merge of dfIII and those ids works as intended
+o1 <- dfIII |> 
+  filter(pID %in% ids$pID) |> 
+  group_by(pID) |> 
+  count(pID) #14 of everyone, and 242 rows (10 removed, matching to the baseline as intended)
+
+all(unique(ids$pID) == unique(o1$pID)) #Yay it works!
+#So in total, the 'keep from analysis' var in dfI_II removes 10 participants, 5 complete couples, from the dataset
+```
+Re-save the dataframes now with complete cases data
+```{r}
+dfI_II <- dfI_II |> 
+  filter(keep == 1)
+
+dfIII <- dfIII |> 
+  filter(pID %in% ids$pID)
+```
+
+### Data checks, Recoding, Renaming
+Baseline recoding
+```{r}
+table(dfI_II$dyadtype)
+attributes(dfI_II$dyadtype) #It looks like the coding is a bit weird, but we get the first 6 ok I guess
+
+table(dfI_II$a_gend)
+attributes(dfI_II$a_gend)
+
+table(dfI_II$a_trans)
+attributes(dfI_II$a_trans)
+
+table(dfI_II$a_ethn)
+attributes(dfI_II$a_ethn)
+table(dfI_II$a_ethn_TEXT)#For end
+
+table(dfI_II$a_sexorn)
+attributes(dfI_II$a_sexorn)
+table(dfI_II$a_sexorn_TEXT)#unknown other
+
+table(dfI_II$a_myeduc)
+attributes(dfI_II$a_myeduc)
+
+table(dfI_II$a_employ)
+attributes(dfI_II$a_employ)
+
+table(dfI_II$a_myincome)
+attributes(dfI_II$a_myincome)
+
+table(dfI_II$a_relstat)
+attributes(dfI_II$a_relstat)
+
+table(dfI_II$a_p1live1)#live with partner item
+attributes(dfI_II$a_p1live1)
+
+table(dfI_II$COND)
+attributes(dfI_II$COND)
+
+dfI_II <- 
+dfI_II |> 
+  mutate(
+    dyadtype = recode(factor(dyadtype),
+                      "0" = "ManWoman",
+                      "1" = "WomanWoman",
+                      "2" = "Woman-agenderGenderless",
+                      "3" = "Man-nonbinaryGenderqueer",
+                      "4" = "ManMan",
+                      "5" = "Woman-nonbinaryGenderqueer"),
+    a_gend = recode(factor(a_gend),
+                    "0" = "Man",
+                    "1" = "Woman",
+                    "2" = "NonbinaryGenderqueer",
+                    #"3" = "bigenderGenderfluid",
+                    "4" = "AgenderGenderless"),
+    a_trans = recode(factor(a_trans),
+                     "0" = "No",
+                     "1" = "Yes",
+                     "2" = "DontKnow"),
+    a_ethn = recode(factor(a_ethn),
+                    "0" = "WhiteCaucasianAnglo",
+                    "1" = "BlackAfricanCaribbean",
+                    "2" = "HispanicLatinoaChicanoa",
+                    "3" = "EastAsian",
+                    "4" = "SouthAsian",
+                    "5" = "SoutheastAsian",
+                    #"6" = "WestAsian",
+                    #"7" = "MiddleEasterArab,
+                    #"8" = "AboriginalIndigenousNative,
+                    "9" = "MixedMultipleEthnicGroups",
+                    "10" = "Other"),
+    a_sexorn = recode(factor(a_sexorn),
+                      "0" = "HeterosexualStraight",
+                      "1" = "Gay",
+                      "2" = "Lesbian",
+                      "3" = "Queer",
+                      "4" = "BisexualPansexual",
+                      #"5" = "Demisexual",
+                      "6" = "Asexual",
+                      "7" = "Other"),
+    a_myeduc = recode(factor(a_myeduc),
+                      "1" = "LowerSecondary",
+                      "2" = "UpperSecondary",
+                      "3" = "Vocational",
+                      "4" = "Undergraduate",
+                      "5" = "Masters",
+                      "6" = "DoctorateProfessional",
+                      "7" = "Other"),
+    a_employ = recode(factor(a_employ),
+                      "0" = "No",
+                      "1" = "PartTime",
+                      "2" = "FullTime"),
+    a_myincome = recode(factor(a_myincome),
+                        "0" = "£0-£12,570",
+                        "1" = "£12,571-£14,732",
+                        "2" = "£14,733-£25,688",
+                        "3" = "£25,689-£43,662",
+                        "4" = "£43,663-£150,000"),
+    a_relstat = recode(factor(a_relstat),
+                       "1" = "DatingPAndOthers",
+                       "2" = "DatingPExclusive",
+                       "3" = "CommonLaw",
+                       "4" = "CivilPartnership",
+                       "5" = "Engaged",
+                       "6" = "Married"),
+    a_student = recode(factor(a_student),
+                       "0" = "No",
+                       "1" = "Yes"),
+    Cohab = recode(factor(a_p1live1),
+                   "0" = "No",
+                   "1" = "Yes"),
+    COND = recode(factor(COND),
+                  "-1" = "Control",
+                  "1" = "Intervention")
+    )
+
+#Additional
+dfI_II$a_ethn[dfI_II$a_ethn_TEXT == "I would add White Irish"] <- "WhiteCaucasianAnglo"
+```
+
+### Data merges
+
+Cleaning up the daily data
+```{r}
+dfIII <- 
+dfIII |> 
+  rename(
+    Partner = a_p3whatkm1,
+    Friend = a_p3whatkm2,
+    Family = a_p3whatkm3,
+    Colleague = a_p3whatkm4,
+    Acquaintance = a_p3whatkm5,
+    Stranger = a_p3whatkm6,
+    Animal = a_p3whatkm7,
+    Nature = a_p3whatkm8,
+    Music = a_p3whatkm9,
+    NonFiction = a_p3whatkm10,
+    Fiction = a_p3whatkm11,
+    OtherKM = a_p3whatkm12,
+    WhatKmTEXT = a_p3whatkm12_TEXT,
+    ppr1 = a_p3ppr1,
+    ppr2 = a_p3ppr2,
+    ppr3 = a_p3ppr3,
+    ppr4 = a_p3ppr4,
+    km1 = a_p3km1,
+    km2 = a_p3km2,
+    km3 = a_p3km3,
+    km4 = a_p3km4,
+    km5 = a_p3km5,
+    km6 = a_p3km6,
+    pa1 = a_p3pa1,
+    pa2 = a_p3pa2,
+    pa3 = a_p3pa3,
+    pa4 = a_p3pa4,
+    pa5 = a_p3pa5,
+  )
+```
+
+Checking the KM text vars
+```{r}
+nrow(table(dfIII$WhatKmTEXT)) #great, so 107 write-ins...this is not worth diving in for recoding tbh
+```
+
+
+
+
+Beginning the merge process
+```{r}
+df <- dfI_II |> 
+  select(cID, pID, partner, COND) #Should be it. Rest of baseline vars are just for cross-sectional and/or descriptive purposes. We already have the same folks in each, so no need to take more vars
+
+#### Merging this piecemeal df with the daily. Line up by pID. Should be 3388 obs (same as og daily length) and with 3 extra vars (cID is a duplicate to take out, but good for sanity check)
+df <- merge(df, dfIII, by.x = "pID", by.y = "pID")
+```
+
+Sanity check on slightly larger daily df
+```{r}
+#cID sanity check
+all(df$cID.x == df$cID.y) #True, yay. Let's simplify it 
+df <- 
+df |> 
+  select(-cID.y) |> 
+  rename(
+    cID = cID.x
+  ) 
+
+#14 days across everyone?
+df |> 
+ group_by(pID) |> 
+  count(pID) #nice, all set here too!
+```
+
+For my future models, I want to use partners A and B (rather than 1 and 2--want to reduce the amount of numbers in the label if possible)
+```{r}
+df <- df |> 
+  mutate(
+    partner = recode(factor(partner),
+                     "1" = "A",
+                     "2" = "B")
+  )
+```
+
+
+So now we should have a final daily df with the necessary vars for those models, primed with labels to get widened.
+We also have a dfI_II df that has all the demographic vars, and also the cross sectional variables for those intervention tests
+
+
+
+# Descriptives
+
+### Gender & Trans
+note, we don't have biological born sex in these data
+```{r}
+table(dfI_II$a_gend)
+prop.table(table(dfI_II$a_gend))*100
+
+p1 <- ggplot(dfI_II, aes(x = a_gend)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5)) +
+  labs(title = "Gender",
+       x="",
+       y = "Count")
+##############################
+table(dfI_II$a_trans)
+prop.table(table(dfI_II$a_trans))*100
+
+p2 <- ggplot(dfI_II, aes(x = a_trans)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5)) +
+  labs(title = "Transgender",
+       x = "",
+       y = "Count")
+
+##############################
+grid.arrange(p1,p2, nrow = 2)
+
+```
+
+
+### Age
+```{r}
+dfI_II |> 
+  summarise(
+    AgeM = mean(a_p1age, na.rm = T),
+    AgeSD = sd(a_p1age, na.rm = T)
+  )
+range(dfI_II$a_p1age)
+
+ggplot(dfI_II, aes(x = a_p1age)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Age Distribution",
+       x = "Age (Binwidth = 1)",
+       y = "Count")
+```
+
+
+### Ethnicity
+```{r}
+table(dfI_II$a_ethn)
+round(prop.table(table(dfI_II$a_ethn)) *100,2)
+
+ggplot(dfI_II, aes(x = a_ethn)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.5)) +
+  labs(title = "Ethnicity",
+       x = "",
+       y = "Count")
+```
+
+
+### Sexual Orientation
+```{r}
+table(dfI_II$a_sexorn)
+round(prop.table(table(dfI_II$a_sexorn))*100,2)
+
+ggplot(dfI_II, aes(x = a_sexorn)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.5)) +
+  labs(title = "Sexual Orientation",
+       x = "",
+       y = "Count")
+```
+
+
+### Education
+```{r}
+table(dfI_II$a_myeduc)
+round(prop.table(table(dfI_II$a_myeduc))*100,2)
+
+ggplot(dfI_II, aes(x = a_myeduc)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.5)) +
+  labs(title = "Education",
+       x = "",
+       y = "Count")
+```
+
+
+### Student
+```{r}
+table(dfI_II$a_student)
+round(prop.table(table(dfI_II$a_student))*100,2)
+
+ggplot(dfI_II, aes(x = a_student)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5)) +
+  labs(title = "Student Status",
+       x = "",
+       y = "Count")
+```
+
+### Employed
+```{r}
+table(dfI_II$a_employ)
+round(prop.table(table(dfI_II$a_employ))*100,2)
+
+ggplot(dfI_II, aes(x = a_employ)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.5)) +
+  labs(title = "Employed",
+       x = "",
+       y = "Count")
+```
+
+### Income
+```{r}
+table(dfI_II$a_myincome)
+round(prop.table(table(dfI_II$a_myincome)) *100,2)
+
+ggplot(dfI_II, aes(x = a_myincome)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.5)) +
+  labs(title = "My Income",
+       x = "",
+       y = "Count")
+```
+
+
+### Relationship Status
+```{r}
+table(dfI_II$a_relstat)
+round(prop.table(table(dfI_II$a_relstat))*100,2)
+
+ggplot(dfI_II, aes(x = a_relstat)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 30, vjust = 0.5)) +
+  labs(title = "Relationship Status",
+       x = "",
+       y = "Count")
+```
+
+
+### Relationship Length
+```{r}
+dfI_II |> 
+  summarise(
+    RelLenYM = mean(a_p1lengY, na.rm = T),
+    RekLenYSD = sd(a_p1lengY,na.rm = T)
+  )
+range(dfI_II$a_p1lengY)
+
+ggplot(dfI_II, aes(x = a_p1lengY)) +
+  geom_histogram(binwidth = 2) +
+  labs(title = "Years Distribution",
+       x = "Years",
+       y = "Count")
+```
+
+
+### Living Situation
+```{r}
+table(dfI_II$Cohab)
+round(prop.table(table(dfI_II$Cohab))*100,2)
+
+ggplot(dfI_II, aes(x = Cohab)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5)) +
+  labs(title = "Cohabitation",
+       x = "",
+       y = "Count")
+```
+
+
+### Other Baselines??
+
+
+# RQ1: Intervention Effect
+
+### Intervention impact KM?
+Should be a cross-sectional
+Use dfI_II
+```{r}
+contrasts(dfI_II$COND) #confirming that the control condition is the reference group
+```
+
+
+```{r}
+dfI_II$KMtot <- rowSums(dfI_II[c(37, 40:42)], na.rm = T) #note, max scores here should be 0-4. So max score of 16
+
+m.ivn <- lmer(KMtot ~ COND + (1| cID), data = dfI_II)
+summary(m.ivn) #Intervention condition is averaging about 10, which is slightly above the scale midpoint
+```
+
+Visualize
+
+```{r}
+ggplot(aes(x = COND, y = KMtot), data = dfI_II) +
+  geom_boxplot() +
+  stat_summary(geom = "point", fun.y = "mean", shape = 23, size = 3, col = "black", fill = "purple") +
+    labs(title = "KM Score by Condition",
+       x = "",
+       y = "Total KM Score (Out of 16)")
+```
+
+### Intervention matter across period? 
+We're going to try this in the SEM. If that fails, revert back to mlm format with COND as a predictor
+
+In MLM, should be the base model but with the condition added in. 
+Use df, longform. Need to make pairwise format too!
+```{r}
+### Create the KM actor variable
+df$KMtot <- rowSums(df[c(15, 18:20)], na.rm = T) #note, max scores here should be 0-4. So max score of 16
+
+### Saving and labeling actor df as such
+Actor <- df
+colnames(Actor)[6:34] <- paste("a", colnames(Actor)[6:34], sep = "_") #adding (back) the actor prefix
+
+### Saving and lebling a partner df
+Partner <- Actor |> arrange(cID, desc(pID)) |> 
+  rename_with(~str_replace(., "a_", "p_"), starts_with("a_"))
+
+### Creating the pairwise version
+Pairwise <- 
+Actor |> 
+  mutate(
+    p_ppr1 = Partner$p_ppr1,
+    p_ppr2 = Partner$p_ppr2,
+    p_ppr3 = Partner$p_ppr3,
+    p_ppr4 = Partner$p_ppr4,
+    p_pa1 = Partner$p_pa1,
+    p_pa2 = Partner$p_pa2,
+    p_pa3 = Partner$p_pa3,
+    p_pa4 = Partner$p_pa4,
+    p_pa5 = Partner$p_pa5,
+    p_km1 = Partner$p_km1,
+    p_km4 = Partner$p_km4,
+    p_km5 = Partner$p_km5,
+    p_km6 = Partner$p_km6,
+    p_KMtot = Partner$p_KMtot
+    ) |>  #just to re-order so we can confirm that crisscross
+  select(pID, cID, partner, COND, day,
+         a_ppr1, p_ppr1,
+         a_ppr2, p_ppr2,
+         a_ppr3, p_ppr3,
+         a_ppr4, p_ppr4,
+         a_pa1, p_pa1,
+         a_pa2, p_pa2,
+         a_pa3, p_pa3,
+         a_pa4, p_pa4,
+         a_pa5, p_pa5,
+         a_km1, p_km1,
+         a_km4, p_km4,
+         a_km5, p_km5,
+         a_km6, p_km6,
+         a_KMtot, p_KMtot
+  )
+#looks like that worked!
+
+```
+
+Now to modeling
+We're going to avoid mean centering stuff since that is v complicated I think
+```{r}
+m.ivnL <- lmer(a_KMtot ~ COND + day + (1| cID) + (1|pID), data = Pairwise)
+summary(m.ivnL)
+```
+Thank goodness actually. This model suggests that no, the condition did not have a bearing on a person's KM on a given day
+Interestingly, it also suggests that as the study goes on, we see a slight decrease in KM per day. But if it's not from the intervention itself, what is it from? This may be a study confound effect, where folks are primed by their participation in the study and revert to normal across the study period as they get further away from the salience of the initial study entry (which is where they actually had to do a lot of relational focus work)
+
+Also, if time does seem to matter across this study period, it's hint that we'll probably not see any consistent lagged effects again (just like S3).
+
+
+### Summary
+So we see that the responsiveness intervention DOES impact KM in an experimental way--you dose up on PPR, then that leads to more KM experience.
+We also see that the intervention DOES NOT seem to impact KM across the study period. That intervention just holds on the day-of, not downstreaming into the rest of the period. 
+
+# RQ(3): Descriptive
+
+## Sans Item2 and Item3
+I'm expecting a similar factor loading that motivates these removals. Just doing it now for the sake of it. Can easily add later
+
+### How often? KM>0
+```{r}
+df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 0, "Potential KM", "None")
+  ) |> 
+  count(KMmark) #So 2775/3388 (~82%) days potentially had a KM exp by this threshold
+
+o1 <- df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 0, 1, 0)
+    ) |> 
+  group_by(pID) |> 
+  mutate(
+    Day = row_number()
+  ) |> 
+  select(pID, KMmark, Day)
+
+o1 <- o1 |>
+  pivot_wider(
+    names_from = Day,
+    names_prefix = "Day_",
+    values_from = KMmark
+  )
+o1$KMtot <- rowSums(o1[2:15], na.rm = T)
+o1 |> 
+  ungroup(pID) |> 
+  summarise(mean = mean(KMtot)) #note, should be same ratio as above but in a new format. 11.46/14 is 82% as well
+
+p1 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar() +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Meeting >0 of Total Scale Threshold",
+       x = "Number of Days",
+       y = "Number of People")
+```
+### How often? KM>1/4 (>4, 1/4 of scale)
+```{r}
+df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 4, "Potential KM", "None")
+  ) |> 
+  count(KMmark) #So 1945/3388 (~57%) days potentially had a KM exp by this threshold
+
+o1 <- df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 4, 1, 0)
+    ) |> 
+  group_by(pID) |> 
+  mutate(
+    Day = row_number()
+  ) |> 
+  select(pID, KMmark, Day)
+
+o1 <- o1 |>
+  pivot_wider(
+    names_from = Day,
+    names_prefix = "Day_",
+    values_from = KMmark
+  )
+o1$KMtot <- rowSums(o1[2:15], na.rm = T)
+o1 |> 
+  ungroup(pID) |> 
+  summarise(mean = mean(KMtot)) #note, should be same ratio as above but in a new format. 8.04/14 is ~57% as well
+
+p2 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar() +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Meeting >1/4 of Total Scale Threshold",
+       x = "Number of Days",
+       y = "Number of People")
+```
+### How often? KM>1/2 (>8, 1/2 of scale)
+```{r}
+df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 8, "Potential KM", "None")
+  ) |> 
+  count(KMmark) #So 1016/3388 (~30%) days potentially had a KM exp by this threshold
+
+o1 <- df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 8, 1, 0)
+    ) |> 
+  group_by(pID) |> 
+  mutate(
+    Day = row_number()
+  ) |> 
+  select(pID, KMmark, Day)
+
+o1 <- o1 |>
+  pivot_wider(
+    names_from = Day,
+    names_prefix = "Day_",
+    values_from = KMmark
+  )
+o1$KMtot <- rowSums(o1[2:15], na.rm = T)
+o1 |> 
+  ungroup(pID) |> 
+  summarise(mean = mean(KMtot)) #note, should be same ratio as above but in a new format. 4.2/14 is ~30% as well
+
+p3 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar() +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Meeting >1/2 of Total Scale Threshold",
+       x = "Number of Days",
+       y = "Number of People")
+```
+
+### How often? KM>3/4 (>12, 3/4 of scale)
+```{r}
+df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 12, "Potential KM", "None")
+  ) |> 
+  count(KMmark) #So 326/3388 (~10%) days potentially had a KM exp by this threshold
+
+o1 <- df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 12, 1, 0)
+    ) |> 
+  group_by(pID) |> 
+  mutate(
+    Day = row_number()
+  ) |> 
+  select(pID, KMmark, Day)
+
+o1 <- o1 |>
+  pivot_wider(
+    names_from = Day,
+    names_prefix = "Day_",
+    values_from = KMmark
+  )
+o1$KMtot <- rowSums(o1[2:15], na.rm = T)
+o1 |> 
+  ungroup(pID) |> 
+  summarise(mean = mean(KMtot)) #note, should be same ratio as above but in a new format. 1.35/14 is ~10% as well
+
+p4 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar() +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Meeting >3/4 of Total Scale Threshold",
+       x = "Number of Days",
+       y = "Number of People")
+```
+
+```{r}
+#needs the p1-p4 run from above to make these work
+grid.arrange(p1,p2, p3,p4, nrow = 2) #red line indicators are kinda hard to disentangle frankly, so I'm cutting those for now
+```
+What i'm learning here:
+Slightly lower than S3 but similar patterns. Even at the highest threshold of KM experience, we'd expect someone to have a KM emotional experience about once every 12 days.
+By the half scale threshold, we're looking at experiencing kama muta once 4 times every 2 weeks (S3 had near the same ratio, 1.7 out of 6 days: around 28.5%)
+
+### What Evoked the KM?
+REMEMBER: This took out KM items 2 and 3. So some people will have reported evokers for those items. But since I'm cutting the items, we have a mismatch.
+
+The total number of evokers listed is the row observations in the o1 df. The total number of evokers listed as per these 4 KM items is from the All+ bar Mark count ()
+```{r}
+o1 <- 
+df |> 
+  select(pID, Partner, Friend, Family, Colleague, Acquaintance, Stranger, Animal, Nature, Music, NonFiction, Fiction, OtherKM,
+         km1, km4, km5 , km6) |> 
+  group_by(pID) |> 
+  mutate(
+    Day = row_number(),
+    Mark = ifelse(km1 + km4 + km5 + km6 > 0, 1, 0),
+    MarkQtr = ifelse(km1 +  km4 + km5 + km6 > 4, 1, 0),
+    MarkHalf = ifelse(km1 + km4 + km5 + km6 > 8, 1, 0),
+    Mark34 = ifelse(km1 + km4 + km5 + km6 > 12, 1, 0),
+    HighestMark = case_when(
+#      .default = "0",
+      Mark34 == 1 ~ ">3/4",
+      MarkHalf == 1 ~ ">1/2",
+      MarkQtr == 1 ~ ">1/4",
+      Mark == 1 ~ ">0"
+      ),
+    HighestMark = factor(HighestMark, levels = c(">0", ">1/4", ">1/2", ">3/4"))
+  ) |> 
+  select(pID, Day, Partner, Friend, Family, Colleague, Acquaintance, Stranger, Animal, Nature, Music, NonFiction, Fiction, OtherKM,
+         Mark, MarkQtr, MarkHalf, Mark34, HighestMark) |> 
+  pivot_longer(cols = !c(pID, Day, Mark, MarkQtr, MarkHalf, Mark34, HighestMark), names_to = "Evoker") |> 
+  filter(value == 1) |> #taking only the combinations that turned up
+  group_by(pID, Day)
+#7858 evokers listed by our participants (including from items 2 and 3).
+#With 3388 obs (i.e. days) in the whole dataset, means ~2.3 evokers reported per day (S3 had ~2.5)
+
+
+#All+ bar
+sum(table(o1$Evoker[o1$Mark == 1])) #7821 evokers by new KM standards. Out of 3388 total day observations, means ~2.3 evokers reported per day (S3 had ~2.5)
+#also means 7858-7821 = 37 days where people ONLY scored on KM items 2 and 3 (and no other KM indicators).
+table(o1$Evoker[o1$Mark == 1])
+round(prop.table(table(o1$Evoker[o1$Mark == 1]))*100,1)
+
+#Low+ bar
+sum(table(o1$Evoker[o1$MarkQtr == 1]))
+table(o1$Evoker[o1$MarkQtr == 1])
+round(prop.table(table(o1$Evoker[o1$MarkQtr == 1]))*100,1)
+
+#Med+ bar
+sum(table(o1$Evoker[o1$MarkHalf == 1]))
+table(o1$Evoker[o1$MarkHalf == 1])
+round(prop.table(table(o1$Evoker[o1$MarkHalf == 1]))*100,1)
+
+#High+ bar
+sum(table(o1$Evoker[o1$Mark34 == 1]))
+table(o1$Evoker[o1$Mark34 == 1])
+round(prop.table(table(o1$Evoker[o1$Mark34 == 1]))*100,1)
+
+
+p1 <- o1 |> 
+  filter(Mark == 1) |> 
+  ggplot(aes(x = Evoker)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 0.5)) +
+  labs(title = ">0 KM Days",
+       x = "",
+       y = "Count (n = 7821)")
+
+p2 <- o1 |> 
+  filter(MarkQtr == 1) |> 
+  ggplot(aes(x = Evoker)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 0.5)) +
+  labs(title = ">1/4+ KM Days",
+       x = "",
+       y = "Count (n = 6018)")
+
+p3 <- o1 |> 
+  filter(MarkHalf == 1) |> 
+  ggplot(aes(x = Evoker)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 0.5)) +
+  labs(title = ">1/2 KM Days",
+       x = "",
+       y = "Count (n = 3313)") 
+
+p4 <- o1 |> 
+  filter(Mark34 == 1) |> 
+  ggplot(aes(x = Evoker)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 60, vjust = 0.5)) +
+  labs(title = ">3/4 KM Days",
+       x = "",
+       y = "Count (n = 1119)") 
+
+grid.arrange(p1,p2, p3,p4, nrow = 2)
+
+o1 |> 
+  ggplot(aes(Evoker, fill = HighestMark)) +
+  geom_bar(position = "stack") +
+  theme(axis.text.x = element_text(angle = 60, vjust = 0.5)) +
+  labs(title = "Evokers",
+       x = "",
+       y = "Count")
+
+o1 |> 
+  ggplot(aes(x= HighestMark, fill = Evoker)) +
+  geom_bar(position = "fill") +
+  theme(axis.text.x = element_text(angle = 60, vjust = 0.5)) +
+  labs(title = "Evokers",
+       x = "KM Days",
+       y = "Percentage") 
+
+#With refactored/regrouped Evoker
+o1 |> 
+  mutate(
+    Evoker = recode(factor(Evoker), 
+       Partner = "Partner",
+       Friend = "Friend",
+       Family = "Family",
+       Music = "Music",
+       Nature = "Nature",
+       Fiction = "Remaining",
+       NonFiction = "Remaining",
+       Acquaintance = "Remaining",
+       Animal = "Remaining",
+       Colleague = "Remaining",
+       OtherKM = "Remaining",
+       Stranger = "Remaining"
+       ),
+    Evoker = factor(Evoker, levels = c("Partner", "Friend", "Family", "Music", "Nature", "Remaining"))
+    ) |> 
+  filter(!is.na(HighestMark)) |> #to get rid of those folks who reported evokers but just on items2 and 3 (which are cut)
+  ggplot(aes(HighestMark, fill = Evoker)) +
+  geom_bar(position = "fill", stat = "count") +
+  theme(axis.text.x = element_text(vjust = 0.5)) +
+  scale_fill_viridis(discrete=TRUE) +
+  labs(title = "Evokers",
+       x = "Threshold of Kama Muta Scale",
+       y = "Percentage")
+```
+Things we're learning
+A) Partners are number one (mid to high 20%s), again, but to a larger degree than S3 (mid to low 20s). Probs from study focus
+B) Close others take up nearabouts 50% again, with music also remaining in the ~10% range
+
+```{r}
+
+```
+
+
+
+
+
+# RQ 2-3 Modeling:
+
+### Reworking to wide format
+
+
+
+
+# Archive of Code and Notes
 ##### Thoughts on partner effects
 I can't label the partners actor and partner, since the actor/partner label is really only relevant for the effects. I need to relabel those.
 I also need to make sure that these constraints are appropriate at the measurement and regression levels.
