@@ -494,7 +494,7 @@ m.ivn <- lmer(KMtot ~ COND + (1| cID), data = dfI_II)
 summary(m.ivn) #Intervention condition is averaging about 10, which is slightly above the scale midpoint
 ```
 
-Visualize
+Visualize 
 
 ```{r}
 ggplot(aes(x = COND, y = KMtot), data = dfI_II) +
