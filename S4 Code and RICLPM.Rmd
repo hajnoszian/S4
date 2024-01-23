@@ -19,6 +19,7 @@ library(lavaan)
 library(lme4)
 library(lmerTest)
 options(mc.cores = parallel::detectCores())#8 cores on computer.
+set.seed(2009)
 ```
 
 
@@ -450,7 +451,7 @@ dfI_II |>
     RelLenYM = mean(a_p1lengY, na.rm = T),
     RekLenYSD = sd(a_p1lengY,na.rm = T)
   )
-range(dfI_II$a_p1lengY)
+range(dfI_II$a_p1lengY, na.rm = T)
 
 ggplot(dfI_II, aes(x = a_p1lengY)) +
   geom_histogram(binwidth = 2) +
@@ -494,7 +495,7 @@ m.ivn <- lmer(KMtot ~ COND + (1| cID), data = dfI_II)
 summary(m.ivn) #Intervention condition is averaging about 10, which is slightly above the scale midpoint
 ```
 
-Visualize 
+#### Visualize 
 
 ```{r}
 ggplot(aes(x = COND, y = KMtot), data = dfI_II) +
@@ -1332,7 +1333,7 @@ summary(measure.m6L.fit, fit.measures = T, standardized =T, ci = T) #its the fit
 
 
 ```{r}
-predict(measure.m6M.fit)
+predict(measure.m6M.fit) #scaled to first measure item. 6L is scaled to latent
 ```
 Note, these numbers ARE different factor predictions than the std.lv = T m6 model. I THINK they will be relatively different, i.e. at a relative level they are not showing more or less variation than the other, but just a heads up that these numbers are not strictly speaking the same with different interpretations. Will need to double check that interpretation re:Bollen for help.
 
@@ -1354,7 +1355,7 @@ ggplot(aes(x = day, y = Fkm), data = o1) +
   ggdist::stat_halfeye(adjust = .3,  .width = -.5, justification = .2) + #this is for the half-distribution
   labs(title = "KM Score Across Days",
        x = "",
-       y = "Scaled KM Score, per Day") +
+       y = "Latent Scaled KM Score, per Day") +
   scale_x_continuous(breaks = 1:14)
 ```
 
@@ -1379,7 +1380,7 @@ ggplot(aes(x = day, y = Fkm), data = o1) +
   ggdist::stat_halfeye(adjust = .3,  .width = -.5, justification = .2) + #this is for the half-distribution
   labs(title = "KM Score Across Days",
        x = "",
-       y = "Scaled KM Score, per Day") +
+       y = "Item Scaled KM Score, per Day") +
   scale_x_continuous(breaks = 1:14)
 ```
 
@@ -1403,6 +1404,7 @@ So anything below about 16 is likely to show as "negative" in the factor, while 
 
 ### Creating Pairwise Factor Dataframe
 Just in case not re-run from earlier, some old code from above is included
+For a latent factor variable, pairwise dataframe, use this code
 ```{r}
 #### To make the object with m6 fit measures
 o1 <- as.data.frame(predict(measure.m6.fit)) #woo!
@@ -1444,13 +1446,15 @@ Actor |>
   ) #sort by cID, this should be pairwise but with the new factor loadings
 ```
 
+For an observed variables, pairwise dataframe, use this code
 ```{r}
 ### Create the KM actor variable
 df$KMtot <- rowSums(df[c(15, 18:20)], na.rm = T) #note, max scores here should be 0-4. So max score of 16
 df$PPRtot <- rowSums(df[c(6:9)], na.rm = T)
 
 ### Saving and labeling actor df as such
-Actor <- dfcolnames(Actor)[6:35] <- paste("a", colnames(Actor)[6:35], sep = "_") #adding (back) the actor prefix
+Actor <- df
+colnames(Actor)[6:35] <- paste("a", colnames(Actor)[6:35], sep = "_") #adding (back) the actor prefix
 
 
 ### Saving and lebling a partner df
@@ -1458,7 +1462,7 @@ Partner <- Actor |> arrange(cID, desc(pID)) |>
   rename_with(~str_replace(., "a_", "p_"), starts_with("a_"))
 
 ### Creating the pairwise version
-PairwiseF <- 
+Pairwise <- 
 Actor |> 
   mutate(
     p_ppr1 = Partner$p_ppr1,
@@ -1498,7 +1502,236 @@ Actor |>
 
 ```
 
-## For Funsies
+
+### Centering and Column Creating
+
+##### Centering Add
+Grand Mean Center Var: Captures variance of fluctuations, "How different is given score from sample?"
+Within-Person/Person Centered Var: captures variance of fluctuations for a person, "How different is given score from person's average?" (this will capture the within-person variation)
+Between-Person/Between Centered Var: variance of persons in the sample, "How different is THIS person from sample"? (this should be stable for each person--i.e. expect 14 of the same for each person. It'll function like an intercept, reflecting every person's "trait-like" variance)
+
+```{r}
+PairwiseF <- 
+PairwiseF |> 
+  group_by(pID) |> #create person-specific means 
+  mutate(
+    a_Fkm_pm = mean(a_Fkm, na.rm = T),
+    p_Fkm_pm = mean(p_Fkm, na.rm = T),
+    a_Fppr_pm = mean(a_Fppr, na.rm = T),
+    p_Fppr_pm = mean(p_Fppr, na.rm = T)
+  ) |> 
+  ungroup() |> 
+  mutate(
+    #Create Grand-Mean Centered Vars (Score - grand mean: How different is given score from sample?)
+    a_Fkm_GMC = scale(a_Fkm, center = T, scale = F),
+    p_Fkm_GMC = scale(p_Fkm, center = T, scale = F),
+    a_Fppr_GMC = scale(a_Fppr, center = T, scale = F),
+    p_Fppr_GMC = scale(p_Fppr, center = T, scale = F),
+    #Create Within-Person Centered Vars (Score - person mean score: How different is given score from person's average?)
+    a_Fkm_WPC = a_Fkm - a_Fkm_pm,
+    p_Fkm_WPC = p_Fkm - p_Fkm_pm,
+    a_Fppr_WPC = a_Fppr - a_Fppr_pm,
+    p_Fppr_WPC = p_Fppr - p_Fppr_pm,
+    #Create Between-Person Centered Vars (GMC - WPC, equation as per Bolger & Laurenceau (2013): How different is person from sample?)
+    a_Fkm_BPC = a_Fkm_GMC - a_Fkm_WPC,
+    p_Fkm_BPC = p_Fkm_GMC - p_Fkm_WPC,
+    a_Fppr_BPC = a_Fppr_GMC - a_Fppr_WPC,
+    p_Fppr_BPC = p_Fppr_GMC - p_Fppr_WPC
+    )
+```
+
+##### Previous Day Add
+```{r}
+PairwiseF <- 
+PairwiseF |> 
+  group_by(pID) |> 
+  mutate(
+    a_Fkm_WPC_prev = a_Fkm_WPC[match(day - 1, day)],
+    p_Fkm_WPC_prev = p_Fkm_WPC[match(day - 1, day)],
+    a_Fppr_WPC_prev = a_Fppr_WPC[match(day - 1, day)],
+    p_Fppr_WPC_prev = p_Fppr_WPC[match(day - 1, day)]
+  ) |> 
+  ungroup()
+
+```
+
+### Visualizing the Period
+This KM one is from above actually, but reminding here for the spread.
+We see a very very slight downward trend, where people report less KM over time I reckon.
+```{r}
+ggplot(aes(x = day, y = a_KMtot), data = Pairwise) +
+  ggdist::stat_halfeye(adjust = .3,  .width = -.5, justification = -.3) + #this is for the half-distribution
+  labs(title = "KM Total Score Across Days",
+       x = "",
+       y = "Total KM Score (Out of 16)")
+```
+
+This PPR one is new :)
+No change in PPR over time, it appears
+```{r}
+ggplot(aes(x = day, y = a_PPRtot), data = Pairwise) +
+  ggdist::stat_halfeye(adjust = .3,  .width = -.5, justification = -.3) + #this is for the half-distribution
+  labs(title = "PPR Total Score Across Days",
+       x = "",
+       y = "Total KM Score (Out of 24)")
+```
+
+
+### Modeling
+#### RQ1: Intervention Effect, with new Factor vars
+Intervention model, m.ivn, does not need re-doing since it is cross-sectional.
+
+If needed to be re-done, can be like this (I think)
+```{r}
+#need to fit the same model as done in the diary study portion
+
+#ran into some haven labeling issues. So making a temp dataframe with just relevant numerics 
+o2 <- dfI_II |> 
+  mutate(
+    a_p2km1 = as.numeric(a_p2km1),
+    a_p2km4 = as.numeric(a_p2km4),
+    a_p2km5 = as.numeric(a_p2km5),
+    a_p2km6 = as.numeric(a_p2km6)
+    )
+  
+  
+measure.m6C <- '
+   #####################
+  # MEASUREMENT MODEL #
+  #####################
+
+  # Factor models for km at 14 waves (Constrained)
+  Fkm =~ a*a_p2km1 + d*a_p2km4 + e*a_p2km5 + f*a_p2km6
+
+   # Constrained Intercepts over time (Strong invariance)
+  a_p2km1  ~ k*1
+  a_p2km4  ~ l*1
+  a_p2km5  ~ m*1
+  a_p2km6  ~ n*1
+  
+'
+
+measure.m6C.fit <- cfa(measure.m6C,
+    data = o2,
+    std.lv = T,
+    missing = "ML",
+    )
+summary(measure.m6C.fit, fit.measures = T, standardized =T, ci = T, rsquare = T)
+```
+
+```{r}
+#create a similar id var to match upon
+o3 <- as.data.frame(predict(measure.m6C.fit))
+o3$id <- 1:nrow(o3)
+o2$id <- 1:nrow(o2)
+
+o2 <- o2 |>
+  merge(o3, by.x = "id", by.y = "id", all.x = T)
+#now added the Fkm var to the o2 df, which is just a copy of the dfI_II dataframe I used for the CFA above
+
+```
+
+##### KM Cross-Sectional Day-Of
+```{r}
+m.ivn2 <- lmer(Fkm ~ COND + (1| cID), data = o2)
+summary(m.ivn2)
+```
+Exact same pattern as in the observed vars model, which is good. The df and t value, and therefore the p-value, are almost the same actually. This means that the 4-item observed vars actually seem to hold up quite well to a latent-ized version. We may have been fine to use the total km score for the whole thing based off these data--they don't differ much. (hindsight 20/20, now we KNOW for sure whereas before I would be hedging my bets)
+
+###### Visualize
+
+```{r}
+ggplot(aes(x = COND, y = Fkm), data = o2) +
+  ggdist::stat_halfeye(adjust = .5, width = .3, .width = -.5, justification = -.3, point_colour = NA) + #this is for the half-distribution
+  geom_boxplot(width = .1, outlier.shape = NA) +
+  gghalves::geom_half_point(side = "l", range_scale = .4, alpha = .5) +
+    labs(title = "KM by Condition",
+       x = "",
+       y = "Standardized Score")
+```
+
+
+
+
+##### KM Longitudinal
+```{r}
+m.ivnK <- lmer(a_Fkm ~ COND + day + a_Fkm_prev + (1| cID) + (1|pID), data = PairwiseF)
+summary(m.ivnK)
+```
+Intervention is not impactful over time.
+Interestingly, we see a slight day-decrease effect--as days go on, we see slightly less KM. Makes sense given the (very slightly downward) overall trend in a way
+
+##### PPR
+```{r}
+m.ivnP <- lmer(a_Fppr ~ COND + day + a_Fppr_prev + (1| cID) + (1|pID), data = PairwiseF)
+summary(m.ivnP)
+```
+No intervention effect on PPR over time either.
+Interestingly, also a day effect. Here as time goes on, we see very slight increases to PPR (double-check the scaling--if the KM var is scaled to first item, technically PPR should be too in this interpretation)
+
+
+#### RQ2: Lagged
+
+##### Actor (replication) and Partner (extension)
+1) is the, per respective PPR/KM outcome, KM <-> PPR effect present for actors?
+2) Is the lagged respective effect present for actors?
+
+3) is there, per respective for KM (PPR) outcome, a partner KM (PPR) effect?
+4) is there, per respective for KM (PPR) outcome, a partner PPR (KM) effect?
+5) is there, per respective for KM (PPR) outcome, a partner lagged KM (PPR) effect?
+6) is there, per respective for KM (PPR) outcome) a partner lagged PPR (KM) effect?
+
+###### KM Outcome
+```{r}
+m.km <- lmer(a_Fkm_WPC ~ COND + day + #standard controls
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner predictor between person, stable trait-like influence
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = PairwiseF)
+summary(m.km)
+```
+
+The issingular is, I think, from the lack of random effect variance. Basically we have so little variance there, in large part because I have already formally included a between-person (think random intercept) parameter in the model, so there's little left over for the random variance to parse out. 
+I think we're fine, is the point.
+
+###### PPR Outcome
+
+```{r}
+m.ppr <- lmer(a_Fppr_WPC ~ COND + day + #standard controls
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner predictor between person, stable trait-like influence
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = PairwiseF)
+summary(m.ppr)
+```
+
+#### RQ2: Correlation
+```{r}
+PairwiseF |> 
+  select(a_Fkm_WPC, p_Fkm_WPC, a_Fppr_WPC, p_Fppr_WPC) |> 
+  pairs.panels(ci = T)
+```
+
+
+
+##### RQs and Answers
+(Actor) Does KM <-> PPR per day?: Yes, r = .43 (VERY similar to S3, r = .498)
+(Actor) Does KM predict PPR, or PPR predict KM?: No. My KM/PPR yesterday does not predict my PPR/KM today--same as S3 I believe
+(Partner) Do couple's KM co-occur?: Yes, r = .25. Smaller degree than actors to actors, but still there
+(Partner) Do couple's KM-PPR co-occur?: Yes, r = .15. Even smaller, but still (still) there
+(Partner) Does partner's KM predict actors KM or PPR?: Yes. Partner KM predicts Actor PPR, but not Actor KM
+(Partner) Does partner's PPR predict actors KM or PPR?: Yes. Partner PPR predicts Actor KM, but not Actor PPR
+
+We have stability autoregressives within persons--my yesterday X impacts my today's X. But little to no actor spillover--my yesterday's x impacts my today's y. Instead we get partner spillover--my partner's x impacts my today's y. 
+
+
+## For Funsies (PPR Model eval)
 Skipping straight to strong, b/c it holds in the previous models
 ```{r}
 ppr.m3 <- '
@@ -1537,7 +1770,6 @@ ppr.m3.fit <- cfa(ppr.m3,
 summary(ppr.m3.fit, fit.measures = T, standardized =T, ci = T) #its the fit measures that take forever to cycle
 ```
 This is a great PPR measure, just as a heads up! It's the KM measure that is wobbly (but not by a lot) that kicks down the complete measurement model I'm working with
-
 
 
 
