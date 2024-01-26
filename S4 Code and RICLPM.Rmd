@@ -493,6 +493,8 @@ dfI_II$KMtot <- rowSums(dfI_II[c(37, 40:42)], na.rm = T) #note, max scores here 
 
 m.ivn <- lmer(KMtot ~ COND + (1| cID), data = dfI_II)
 summary(m.ivn) #Intervention condition is averaging about 10, which is slightly above the scale midpoint
+confint(m.ivn)
+
 ```
 
 #### Visualize 
@@ -643,7 +645,7 @@ o1 |>
 p1 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = "Meeting >0 of Total Scale Threshold",
+  labs(title = ">0 KM Days",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -679,7 +681,7 @@ o1 |>
 p2 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = "Meeting >1/4 of Total Scale Threshold",
+  labs(title = ">1/4 KM Days",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -715,7 +717,7 @@ o1 |>
 p3 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = "Meeting >1/2 of Total Scale Threshold",
+  labs(title = ">1/2 KM Days",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -752,7 +754,7 @@ o1 |>
 p4 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = "Meeting >3/4 of Total Scale Threshold",
+  labs(title = ">3/4 KM Days",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -892,7 +894,7 @@ o1 |>
        OtherKM = "Remaining",
        Stranger = "Remaining"
        ),
-    Evoker = factor(Evoker, levels = c("Partner", "Friend", "Family", "Music", "Nature", "Remaining"))
+    Evoker = factor(Evoker, levels = c("Partner", "Family", "Friend", "Music", "Nature", "Remaining"))
     ) |> 
   filter(!is.na(HighestMark)) |> #to get rid of those folks who reported evokers but just on items2 and 3 (which are cut)
   ggplot(aes(HighestMark, fill = Evoker)) +
@@ -997,7 +999,7 @@ measure.m3.fit <- cfa(measure.m3,
     std.lv = T,
     missing = "ML",
     )
-#summary(measure.m3.fit, fit.measures = T, standardized =T, ci = T) #yeah, the old lavaan version doesnt get stuck on the summary fit.measures
+summary(measure.m3.fit, fit.measures = T, standardized =T, ci = T) #yeah, the old lavaan version doesnt get stuck on the summary fit.measures
 ```
 
 Without km2 and km3
@@ -1567,13 +1569,13 @@ ggplot(aes(x = day, y = a_KMtot), data = Pairwise) +
 ```
 
 This PPR one is new :)
-No change in PPR over time, it appears
+Little to no change in PPR over time, it appears
 ```{r}
 ggplot(aes(x = day, y = a_PPRtot), data = Pairwise) +
   ggdist::stat_halfeye(adjust = .3,  .width = -.5, justification = -.3) + #this is for the half-distribution
   labs(title = "PPR Total Score Across Days",
        x = "",
-       y = "Total KM Score (Out of 24)")
+       y = "Total PPR Score (Out of 24)")
 ```
 
 
@@ -1635,6 +1637,7 @@ o2 <- o2 |>
 ```{r}
 m.ivn2 <- lmer(Fkm ~ COND + (1| cID), data = o2)
 summary(m.ivn2)
+confint(m.ivn2)
 ```
 Exact same pattern as in the observed vars model, which is good. The df and t value, and therefore the p-value, are almost the same actually. This means that the 4-item observed vars actually seem to hold up quite well to a latent-ized version. We may have been fine to use the total km score for the whole thing based off these data--they don't differ much. (hindsight 20/20, now we KNOW for sure whereas before I would be hedging my bets)
 
@@ -1692,6 +1695,7 @@ m.km <- lmer(a_Fkm_WPC ~ COND + day + #standard controls
              control=lmerControl(optimizer = "bobyqa"),
              data = PairwiseF)
 summary(m.km)
+confint(m.km)
 ```
 
 The issingular is, I think, from the lack of random effect variance. Basically we have so little variance there, in large part because I have already formally included a between-person (think random intercept) parameter in the model, so there's little left over for the random variance to parse out. 
@@ -1709,17 +1713,37 @@ m.ppr <- lmer(a_Fppr_WPC ~ COND + day + #standard controls
              control=lmerControl(optimizer = "bobyqa"),
              data = PairwiseF)
 summary(m.ppr)
+confint(m.ppr)
 ```
 
 #### RQ2: Correlation
 ```{r}
 PairwiseF |> 
-  select(a_Fkm_WPC, p_Fkm_WPC, a_Fppr_WPC, p_Fppr_WPC) |> 
-  pairs.panels(ci = T)
+  select(a_Fkm_WPC, p_Fkm_WPC, a_Fppr_WPC, p_Fppr_WPC, a_Fkm_BPC, p_Fkm_BPC, a_Fppr_BPC, p_Fppr_BPC) |> 
+  psych::pairs.panels(ci = T)
 ```
 
+```{r}
+PairwiseF |> 
+  select(a_Fkm_WPC, p_Fkm_WPC, a_Fppr_WPC, p_Fppr_WPC) |> 
+  psych::pairs.panels(ci = T)
 
+cor.test(PairwiseF$a_Fkm_WPC, PairwiseF$p_Fkm_WPC, conf.level = .95)
+cor.test(PairwiseF$a_Fkm_WPC, PairwiseF$a_Fppr_WPC, conf.level = .95)
+cor.test(PairwiseF$a_Fkm_WPC, PairwiseF$p_Fppr_WPC, conf.level = .95)
+cor.test(PairwiseF$a_Fppr_WPC, PairwiseF$p_Fppr_WPC, conf.level = .95)
+```
 
+```{r}
+PairwiseF |> 
+  select(a_Fkm_BPC, p_Fkm_BPC, a_Fppr_BPC, p_Fppr_BPC) |> 
+  psych::pairs.panels(ci = T)
+
+cor.test(PairwiseF$a_Fkm_BPC, PairwiseF$p_Fkm_BPC, conf.level = .95)
+cor.test(PairwiseF$a_Fkm_BPC, PairwiseF$a_Fppr_BPC, conf.level = .95)
+cor.test(PairwiseF$a_Fkm_BPC, PairwiseF$p_Fppr_BPC, conf.level = .95)
+cor.test(PairwiseF$a_Fppr_BPC, PairwiseF$p_Fppr_BPC, conf.level = .95)
+```
 ##### RQs and Answers
 (Actor) Does KM <-> PPR per day?: Yes, r = .43 (VERY similar to S3, r = .498)
 (Actor) Does KM predict PPR, or PPR predict KM?: No. My KM/PPR yesterday does not predict my PPR/KM today--same as S3 I believe
@@ -1729,6 +1753,126 @@ PairwiseF |>
 (Partner) Does partner's PPR predict actors KM or PPR?: Yes. Partner PPR predicts Actor KM, but not Actor PPR
 
 We have stability autoregressives within persons--my yesterday X impacts my today's X. But little to no actor spillover--my yesterday's x impacts my today's y. Instead we get partner spillover--my partner's x impacts my today's y. 
+
+## Exploratory Condition Interaction
+```{r}
+m.kmInt <- lmer(a_Fkm_WPC ~ COND * day + #standard controls
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner predictor between person, stable trait-like influence
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = PairwiseF)
+summary(m.kmInt)
+confint(m.kmInt)
+```
+
+Intervention interaction turns up here!
+
+```{r}
+ggplot(aes(x = day, y = a_KMtot), data = Pairwise) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(0,16) +
+  labs(title = "KM Total Score Across Days",
+       x = "",
+       y = "Total KM Score (Out of 16)")
+```
+```{r}
+ggplot(aes(x = day, y = a_KMtot), data = Pairwise) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(0,16) +
+  labs(title = "KM Total Score Across Days",
+       x = "",
+       y = "Total KM Score (Out of 16)")
+
+ggplot(aes(x = day, y = a_KMtot), data = Pairwise) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  labs(title = "KM Total Score Across Days",
+       x = "",
+       y = "Total KM Score (Out of 16)")
+```
+
+
+
+```{r}
+ggplot(aes(x = day, y = a_KMtot, color = COND), data = Pairwise) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  labs(title = "KM Total Score Across Days",
+       x = "",
+       y = "Total KM Score (Out of 16)")
+
+ggplot(aes(x = day, y = a_KMtot, color = COND), data = Pairwise) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(0,16) +
+  labs(title = "KM Total Score Across Days",
+       x = "",
+       y = "Total KM Score (Out of 16)")
+```
+
+
+```{r}
+ggplot(aes(x = day, y = a_Fkm_WPC, color = COND), data = PairwiseF) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  labs(title = "Latent WPC KM Across Days",
+       x = "",
+       y = "Latent KM Score")
+
+ggplot(aes(x = day, y = a_Fkm_WPC, color = COND), data = PairwiseF) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(-1,1) +
+  labs(title = "Latent WPC KM Across Days",
+       x = "",
+       y = "Latent KM Score")
+```
+
+
+```{r}
+m.pprInt <- lmer(a_Fppr_WPC ~ COND * day + #standard controls
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner predictor between person, stable trait-like influence
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = PairwiseF)
+summary(m.pprInt)
+confint(m.pprInt)
+```
+No interaction effect with PPR though! Thats WEIRD
+
+```{r}
+ggplot(aes(x = day, y = a_Fppr_WPC, color = COND), data = PairwiseF) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  labs(title = "Latent WPC PPR Across Days",
+       x = "",
+       y = "Latent PPR Score")
+
+ggplot(aes(x = day, y = a_Fppr_WPC, color = COND), data = PairwiseF) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(-1,1) +
+  labs(title = "Latent WPC PPR Across Days",
+       x = "",
+       y = "Latent PPR Score")
+```
 
 
 ## For Funsies (PPR Model eval)
