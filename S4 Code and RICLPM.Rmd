@@ -645,7 +645,7 @@ o1 |>
 p1 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = ">0 KM Days",
+  labs(title = "Score >0 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -681,7 +681,7 @@ o1 |>
 p2 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = ">1/4 KM Days",
+  labs(title = "Score >4 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -717,7 +717,7 @@ o1 |>
 p3 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = ">1/2 KM Days",
+  labs(title = "Score >8 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -754,7 +754,7 @@ o1 |>
 p4 <- ggplot(o1, aes(x = KMtot)) +
   geom_bar() +
   #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
-  labs(title = ">3/4 KM Days",
+  labs(title = "Score >12 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
 ```
@@ -1770,16 +1770,7 @@ confint(m.kmInt)
 
 Intervention interaction turns up here!
 
-```{r}
-ggplot(aes(x = day, y = a_KMtot), data = Pairwise) +
-  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
-  geom_smooth(method = "lm") +
-  scale_x_continuous(n.breaks = 14) +
-  ylim(0,16) +
-  labs(title = "KM Total Score Across Days",
-       x = "",
-       y = "Total KM Score (Out of 16)")
-```
+
 ```{r}
 ggplot(aes(x = day, y = a_KMtot), data = Pairwise) +
   stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
@@ -1832,7 +1823,7 @@ ggplot(aes(x = day, y = a_Fkm_WPC, color = COND), data = PairwiseF) +
 
 ggplot(aes(x = day, y = a_Fkm_WPC, color = COND), data = PairwiseF) +
   stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm") + #default is use CIs
   scale_x_continuous(n.breaks = 14) +
   ylim(-1,1) +
   labs(title = "Latent WPC KM Across Days",
@@ -1856,6 +1847,26 @@ confint(m.pprInt)
 No interaction effect with PPR though! Thats WEIRD
 
 ```{r}
+ggplot(aes(x = day, y = a_PPRtot, color = COND), data = Pairwise) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  labs(title = "PPR Total Score Across Days",
+       x = "",
+       y = "Total PPR Score (Out of 16)")
+
+ggplot(aes(x = day, y = a_PPRtot, color = COND), data = Pairwise) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(0,16) +
+  labs(title = "PPR Total Score Across Days",
+       x = "",
+       y = "Total PPR Score (Out of 16)")
+```
+
+
+```{r}
 ggplot(aes(x = day, y = a_Fppr_WPC, color = COND), data = PairwiseF) +
   stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
   geom_smooth(method = "lm") +
@@ -1873,6 +1884,72 @@ ggplot(aes(x = day, y = a_Fppr_WPC, color = COND), data = PairwiseF) +
        x = "",
        y = "Latent PPR Score")
 ```
+
+```{r}
+p1 <-  ggplot(aes(x = day, y = a_Fkm_WPC, color = COND), data = PairwiseF) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(-1,1) +
+  labs(title = "KM Across Period",
+       x = "",
+       y = "WPC KM Score")
+p2 <- ggplot(aes(x = day, y = a_Fppr_WPC, color = COND), data = PairwiseF) +
+  stat_summary(fun.data = "mean_cl_boot", position = position_dodge(width = .1)) + #Mean Standard error from bootstrap
+  geom_smooth(method = "lm") +
+  scale_x_continuous(n.breaks = 14) +
+  ylim(-1,1) +
+  labs(title = "PPR Across Period",
+       x = "",
+       y = "WPC PPR Score")
+
+grid.arrange(p1,p2, nrow = 2)
+```
+
+
+## Exploratory Condition + Gender Interaction
+```{r}
+o4 <- dfI_II |> 
+  select(pID, cID, a_gend) |>
+  merge(PairwiseF, by.x = c("pID","cID"), by.y = c("pID", "cID"), all.x = T)
+o4$a_gend <- fct_relevel(o4$a_gend, "Woman") #relevel to woman baseline--most theoretically important.
+contrasts(o4$a_gend) #just to confrim releveling to woman
+
+
+m.kmIntGen <- lmer(a_Fkm_WPC ~ COND * day + #standard controls
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner predictor between person, stable trait-like influence
+                 a_gend + #Gender Covariate
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = o4)
+summary(m.kmIntGen)
+confint(m.kmIntGen)
+```
+
+
+```{r}
+o4 <- dfI_II |> 
+  select(pID, cID, a_gend) |>
+  merge(PairwiseF, by.x = c("pID","cID"), by.y = c("pID", "cID"), all.x = T)
+o4$a_gend <- fct_relevel(o4$a_gend, "Woman") #relevel to woman baseline--most theoretically important.
+contrasts(o4$a_gend) #just to confrim releveling to woman
+
+m.pprIntGen <- lmer(a_Fppr_WPC ~ COND * day + #standard controls
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner predictor between person, stable trait-like influence
+                 a_gend +
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = o4)
+summary(m.pprIntGen)
+confint(m.pprIntGen)
+```
+No gender effects turning up here for either PPR nor KM!
 
 
 ## For Funsies (PPR Model eval)
