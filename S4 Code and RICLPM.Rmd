@@ -513,7 +513,7 @@ ggplot(aes(x = COND, y = KMtot), data = dfI_II) +
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = -.5, justification = -.3, point_colour = NA) + #this is for the half-distribution
   geom_boxplot(width = .1, outlier.shape = NA) +
   gghalves::geom_half_point(side = "l", range_scale = .4, alpha = .5) +
-    labs(title = "KM Score by Condition",
+    labs(title = "Kama Muta Score by Condition",
        x = "",
        y = "Total KM Score (Out of 16)")
 ```
@@ -648,7 +648,43 @@ p1 <- ggplot(o1, aes(x = KMtot)) +
   labs(title = "Score >0 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
+
+
+pp1 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar(aes(y = 100*after_stat(count)/sum(after_stat(count)))) +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Score >0 (out of 16) Threshold",
+       x = "Number of Kama Muta Days (Out of 14)",
+       y = "% of Sample")
 ```
+
+```{r}
+df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 0, "Potential KM", "None")
+  ) |> 
+  count(KMmark) #So 2775/3388 (~82%) days potentially had a KM exp by this threshold
+
+o1 <- df |> 
+  mutate(
+    KMmark = ifelse(km1 + km4 + km5 + km6 > 0, 1, 0)
+    ) |>
+  select(pID, KMmark, day)
+
+o1 |> 
+  group_by()
+
+
+ggplot(o1, aes(x = KMtot)) +
+  geom_bar() +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Score >0 (out of 16) Threshold",
+       x = "Number of Days",
+       y = "Number of People")
+```
+
+
+
 ### How often? KM>1/4 (>4, 1/4 of scale)
 ```{r}
 df |> 
@@ -684,6 +720,13 @@ p2 <- ggplot(o1, aes(x = KMtot)) +
   labs(title = "Score >4 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
+
+pp2 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar(aes(y = 100*after_stat(count)/sum(after_stat(count)))) +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Score >4 (out of 16) Threshold",
+       x = "Number of Kama Muta Days (Out of 14)",
+       y = "% of Sample")
 ```
 ### How often? KM>1/2 (>8, 1/2 of scale)
 ```{r}
@@ -720,6 +763,13 @@ p3 <- ggplot(o1, aes(x = KMtot)) +
   labs(title = "Score >8 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
+
+pp3 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar(aes(y = 100*after_stat(count)/sum(after_stat(count)))) +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Score >8 (out of 16) Threshold",
+       x = "Number of Kama Muta Days (Out of 14)",
+       y = "% of Sample")
 ```
 
 ### How often? KM>3/4 (>12, 3/4 of scale)
@@ -757,11 +807,21 @@ p4 <- ggplot(o1, aes(x = KMtot)) +
   labs(title = "Score >12 (out of 16) Threshold",
        x = "Number of Days",
        y = "Number of People")
+pp4 <- ggplot(o1, aes(x = KMtot)) +
+  geom_bar(aes(y = 100*after_stat(count)/sum(after_stat(count)))) +
+  #geom_vline(xintercept = mean(o1$KMtot), color = "red", linetype = "longdash") +
+  labs(title = "Score >12 (out of 16) Threshold",
+       x = "Number of Kama Muta Days (Out of 14)",
+       y = "% of Sample")
 ```
 
 ```{r}
 #needs the p1-p4 run from above to make these work
 grid.arrange(p1,p2, p3,p4, nrow = 2) #red line indicators are kinda hard to disentangle frankly, so I'm cutting those for now
+```
+```{r}
+#needs the p1-p4 run from above to make these work
+grid.arrange(pp1,pp2, pp3,pp4, nrow = 2) #red line indicators are kinda hard to disentangle frankly, so I'm cutting those for now
 ```
 What i'm learning here:
 Slightly lower than S3 but similar patterns. Even at the highest threshold of KM experience, we'd expect someone to have a KM emotional experience about once every 12 days.
@@ -1648,7 +1708,7 @@ ggplot(aes(x = COND, y = Fkm), data = o2) +
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = -.5, justification = -.3, point_colour = NA) + #this is for the half-distribution
   geom_boxplot(width = .1, outlier.shape = NA) +
   gghalves::geom_half_point(side = "l", range_scale = .4, alpha = .5) +
-    labs(title = "KM by Condition",
+    labs(title = "Kama Muta by Condition",
        x = "",
        y = "Standardized Score")
 ```
@@ -1891,7 +1951,7 @@ p1 <-  ggplot(aes(x = day, y = a_Fkm_WPC, color = COND), data = PairwiseF) +
   geom_smooth(method = "lm") +
   scale_x_continuous(n.breaks = 14) +
   ylim(-1,1) +
-  labs(title = "KM Across Period",
+  labs(title = "Kama Muta Across the Diary Period by Condition",
        x = "",
        y = "WPC KM Score")
 p2 <- ggplot(aes(x = day, y = a_Fppr_WPC, color = COND), data = PairwiseF) +
@@ -1904,6 +1964,7 @@ p2 <- ggplot(aes(x = day, y = a_Fppr_WPC, color = COND), data = PairwiseF) +
        y = "WPC PPR Score")
 
 grid.arrange(p1,p2, nrow = 2)
+p1
 ```
 
 
@@ -1992,18 +2053,288 @@ summary(ppr.m3.fit, fit.measures = T, standardized =T, ci = T) #its the fit meas
 ```
 This is a great PPR measure, just as a heads up! It's the KM measure that is wobbly (but not by a lot) that kicks down the complete measurement model I'm working with
 
+## Exploratory PA analyses
+##### Adding PA Var
+Formally should do a full piece by piece variance test here, but for exploratory we'll jump straight to constrained. PA should be pretty stable anyway.
+```{r}
+measure.m7M <- '
+   #####################
+  # MEASUREMENT MODEL #
+  #####################
+
+  # Factor models for km at 14 waves (Constrained)
+  Fkm1 =~ a*km1_t1 + d*km4_t1 + e*km5_t1 + f*km6_t1
+  Fkm2 =~ a*km1_t2 + d*km4_t2 + e*km5_t2 + f*km6_t2
+  Fkm3 =~ a*km1_t3 + d*km4_t3 + e*km5_t3 + f*km6_t3
+  Fkm4 =~ a*km1_t4 + d*km4_t4 + e*km5_t4 + f*km6_t4
+  Fkm5 =~ a*km1_t5 + d*km4_t5 + e*km5_t5 + f*km6_t5
+  Fkm6 =~ a*km1_t6 + d*km4_t6 + e*km5_t6 + f*km6_t6
+  Fkm7 =~ a*km1_t7 + d*km4_t7 + e*km5_t7 + f*km6_t7
+  Fkm8 =~ a*km1_t8 + d*km4_t8 + e*km5_t8 + f*km6_t8
+  Fkm9 =~ a*km1_t9 + d*km4_t9 + e*km5_t9 + f*km6_t9
+  Fkm10 =~ a*km1_t10 + d*km4_t10 + e*km5_t10 + f*km6_t10
+  Fkm11 =~ a*km1_t11 + d*km4_t11 + e*km5_t11 + f*km6_t11
+  Fkm12 =~ a*km1_t12 + d*km4_t12 + e*km5_t12 + f*km6_t12
+  Fkm13 =~ a*km1_t13 + d*km4_t13 + e*km5_t13 + f*km6_t13
+  Fkm14 =~ a*km1_t14 + d*km4_t14 + e*km5_t14 + f*km6_t14
+  
+  
+  # Factor models for ppr at 14 waves (Constrained)
+  Fppr1 =~ g*ppr1_t1 + h*ppr2_t1 + i*ppr3_t1 + j*ppr4_t1
+  Fppr2 =~ g*ppr1_t2 + h*ppr2_t2 + i*ppr3_t2 + j*ppr4_t2
+  Fppr3 =~ g*ppr1_t3 + h*ppr2_t3 + i*ppr3_t3 + j*ppr4_t3
+  Fppr4 =~ g*ppr1_t4 + h*ppr2_t4 + i*ppr3_t4 + j*ppr4_t4
+  Fppr5 =~ g*ppr1_t5 + h*ppr2_t5 + i*ppr3_t5 + j*ppr4_t5
+  Fppr6 =~ g*ppr1_t6 + h*ppr2_t6 + i*ppr3_t6 + j*ppr4_t6
+  Fppr7 =~ g*ppr1_t7 + h*ppr2_t7 + i*ppr3_t7 + j*ppr4_t7
+  Fppr8 =~ g*ppr1_t8 + h*ppr2_t8 + i*ppr3_t8 + j*ppr4_t8
+  Fppr9 =~ g*ppr1_t9 + h*ppr2_t9 + i*ppr3_t9 + j*ppr4_t9
+  Fppr10 =~ g*ppr1_t10 + h*ppr2_t10 + i*ppr3_t10 + j*ppr4_t10
+  Fppr11 =~ g*ppr1_t11 + h*ppr2_t11 + i*ppr3_t11 + j*ppr4_t11
+  Fppr12 =~ g*ppr1_t12 + h*ppr2_t12 + i*ppr3_t12 + j*ppr4_t12
+  Fppr13 =~ g*ppr1_t13 + h*ppr2_t13 + i*ppr3_t13 + j*ppr4_t13
+  Fppr14 =~ g*ppr1_t14 + h*ppr2_t14 + i*ppr3_t14 + j*ppr4_t14
+  
+  # Factor models for PA at 14 waves (Constrained)
+  Fpa1 =~ s*pa1_t1 + t*pa2_t1 + u*pa3_t1 + v*pa4_t1 + w*pa5_t1
+  Fpa2 =~ s*pa1_t2 + t*pa2_t2 + u*pa3_t2 + v*pa4_t2 + w*pa5_t2
+  Fpa3 =~ s*pa1_t3 + t*pa2_t3 + u*pa3_t3 + v*pa4_t3 + w*pa5_t3
+  Fpa4 =~ s*pa1_t4 + t*pa2_t4 + u*pa3_t4 + v*pa4_t4 + w*pa5_t4
+  Fpa5 =~ s*pa1_t5 + t*pa2_t5 + u*pa3_t5 + v*pa4_t5 + w*pa5_t5
+  Fpa6 =~ s*pa1_t6 + t*pa2_t6 + u*pa3_t6 + v*pa4_t6 + w*pa5_t6
+  Fpa7 =~ s*pa1_t7 + t*pa2_t7 + u*pa3_t7 + v*pa4_t7 + w*pa5_t7
+  Fpa8 =~ s*pa1_t8 + t*pa2_t8 + u*pa3_t8 + v*pa4_t8 + w*pa5_t8
+  Fpa9 =~ s*pa1_t9 + t*pa2_t9 + u*pa3_t9 + v*pa4_t9 + w*pa5_t9
+  Fpa10 =~ s*pa1_t10 + t*pa2_t10 + u*pa3_t10 + v*pa4_t10 + w*pa5_t10
+  Fpa11 =~ s*pa1_t11 + t*pa2_t11 + u*pa3_t11 + v*pa4_t11 + w*pa5_t11
+  Fpa12 =~ s*pa1_t12 + t*pa2_t12 + u*pa3_t12 + v*pa4_t12 + w*pa5_t12
+  Fpa13 =~ s*pa1_t13 + t*pa2_t13 + u*pa3_t13 + v*pa4_t13 + w*pa5_t13
+  Fpa14 =~ s*pa1_t14 + t*pa2_t14 + u*pa3_t14 + v*pa4_t14 + w*pa5_t14
+  
+  # Constrained Intercepts over time (Strong invariance)
+  km1_t1 + km1_t2 + km1_t3 + km1_t4 + km1_t5 + km1_t6 + km1_t7 + km1_t8 + km1_t9 + km1_t10 + km1_t11 + km1_t12 + km1_t13 + km1_t14 ~ k*1
+  km4_t1 + km4_t2 + km4_t3 + km4_t4 + km4_t5 + km4_t6 + km4_t7 + km4_t8 + km4_t9 + km4_t10 + km4_t11 + km4_t12 + km4_t13 + km4_t14 ~ l*1
+  km5_t1 + km5_t2 + km5_t3 + km5_t4 + km5_t5 + km5_t6 + km5_t7 + km5_t8 + km5_t9 + km5_t10 + km5_t11 + km5_t12 + km5_t13 + km5_t14 ~ m*1
+  km6_t1 + km6_t2 + km6_t3 + km6_t4 + km6_t5 + km6_t6 + km6_t7 + km6_t8 + km6_t9 + km6_t10 + km6_t11 + km6_t12 + km6_t13 + km6_t14 ~ n*1
+  
+  ppr1_t1 + ppr1_t2 + ppr1_t3 + ppr1_t4 + ppr1_t5 + ppr1_t6 + ppr1_t7 + ppr1_t8 + ppr1_t9 + ppr1_t10 + ppr1_t11 + ppr1_t12 + ppr1_t13 + ppr1_t14 ~ o*1
+  ppr2_t1 + ppr2_t2 + ppr2_t3 + ppr2_t4 + ppr2_t5 + ppr2_t6 + ppr2_t7 + ppr2_t8 + ppr2_t9 + ppr2_t10 + ppr2_t11 + ppr2_t12 + ppr2_t13 + ppr2_t14 ~ p*1
+  ppr3_t1 + ppr3_t2 + ppr3_t3 + ppr3_t4 + ppr3_t5 + ppr3_t6 + ppr3_t7 + ppr3_t8 + ppr3_t9 + ppr3_t10 + ppr3_t11 + ppr3_t12 + ppr3_t13 + ppr3_t14 ~ q*1
+  ppr4_t1 + ppr4_t2 + ppr4_t3 + ppr4_t4 + ppr4_t5 + ppr4_t6 + ppr4_t7 + ppr4_t8 + ppr4_t9 + ppr4_t10 + ppr4_t11 + ppr4_t12 + ppr4_t13 + ppr4_t14 ~ r*1
+  
+  pa1_t1 + pa1_t2 + pa1_t3 + pa1_t4 + pa1_t5 + pa1_t6 + pa1_t7 + pa1_t8 + pa1_t9 + pa1_t10 + pa1_t11 + pa1_t12 + pa1_t13 + pa1_t14 ~ x*1
+  pa2_t1 + pa2_t2 + pa2_t3 + pa2_t4 + pa2_t5 + pa2_t6 + pa2_t7 + pa2_t8 + pa2_t9 + pa2_t10 + pa2_t11 + pa2_t12 + pa2_t13 + pa2_t14 ~ y*1
+  pa3_t1 + pa3_t2 + pa3_t3 + pa3_t4 + pa3_t5 + pa3_t6 + pa3_t7 + pa3_t8 + pa3_t9 + pa3_t10 + pa3_t11 + pa3_t12 + pa3_t13 + pa3_t14 ~ z*1
+  pa4_t1 + pa4_t2 + pa4_t3 + pa4_t4 + pa4_t5 + pa4_t6 + pa4_t7 + pa4_t8 + pa4_t9 + pa4_t10 + pa4_t11 + pa4_t12 + pa4_t13 + pa4_t14 ~ aa*1
+  pa5_t1 + pa5_t2 + pa5_t3 + pa5_t4 + pa5_t5 + pa5_t6 + pa5_t7 + pa5_t8 + pa5_t9 + pa5_t10 + pa5_t11 + pa5_t12 + pa5_t13 + pa5_t14 ~ bb*1
+  
+'
+
+measure.m7M.fit <- cfa(measure.m7M,
+    data = dfSEM,
+    std.lv = F,
+    missing = "ML",
+    )
+#summary(measure.m7M.fit, fit.measures = T, standardized =T, ci = T) #its the fit measures that take forever to cycle
+summary(measure.m7M.fit, standardized =T, ci = T) #its the fit measures that take forever to cycle
+
+```
+
+```{r}
+#### To make the object with m7 fit measures
+o1 <- as.data.frame(predict(measure.m7M.fit)) #woo!
+o1$id <- 1:nrow(o1)
+colnames(o1)
+
+colnames(o1) <- gsub("(?<=\\D)(?=\\d)", "_",colnames(o1), perl = T) #adding in a _ separator for easier pivotting later
+
+o1 <- o1 |> 
+  pivot_longer(
+    c(Fkm_1:Fpa_14),
+    names_to = c(".value", "day"),
+               names_sep = "_") #woo that worked!
+o1$day <- as.numeric(o1$day)
+
+#### To make the actor df: dump df into Actor, then relabel vars
+Actor <- df
+colnames(Actor)[6:35] <- paste("a", colnames(Actor)[6:35], sep = "_") #adding (back) the actor prefix
+
+#### Isolating Only Needed Vars
+Actor <- Actor |> 
+  select(pID:day) |> 
+  merge(o1, by.x = c("pID", "day"), by.y = c("id", "day"), all.x = T)
+
+colnames(Actor)[6:8] <- paste("a", colnames(Actor)[6:8], sep = "_") #adding (back) the actor prefix
+
+Partner <- Actor |> arrange(cID, desc(pID)) |> 
+  rename_with(~str_replace(., "a_", "p_"), starts_with("a_"))
+
+PairwiseFpa <- 
+Actor |> 
+  mutate(
+    p_Fppr = Partner$p_Fppr,
+    p_Fkm = Partner$p_Fkm,
+    p_Fpa = Partner$p_Fpa
+        ) |>  #just to re-order so we can confirm that crisscross
+  select(pID, cID, partner, COND, day,
+         a_Fkm, p_Fkm,
+         a_Fppr, p_Fppr,
+         a_Fpa, p_Fpa
+  ) #sort by cID, this should be pairwise but with the new factor loadings
+```
+
+
+### Centering, Previous Day Additions
+
+##### Centering Add
+Grand Mean Center Var: Captures variance of fluctuations, "How different is given score from sample?"
+Within-Person/Person Centered Var: captures variance of fluctuations for a person, "How different is given score from person's average?" (this will capture the within-person variation)
+Between-Person/Between Centered Var: variance of persons in the sample, "How different is THIS person from sample"? (this should be stable for each person--i.e. expect 14 of the same for each person. It'll function like an intercept, reflecting every person's "trait-like" variance)
+
+```{r}
+PairwiseFpa <- 
+PairwiseFpa |> 
+  group_by(pID) |> #create person-specific means 
+  mutate(
+    a_Fkm_pm = mean(a_Fkm, na.rm = T),
+    p_Fkm_pm = mean(p_Fkm, na.rm = T),
+    a_Fppr_pm = mean(a_Fppr, na.rm = T),
+    p_Fppr_pm = mean(p_Fppr, na.rm = T),
+    a_Fpa_pm = mean(a_Fpa, na.rm = T),
+    p_Fpa_pm = mean(p_Fpa, na.rm = T)
+  ) |> 
+  ungroup() |> 
+  mutate(
+    #Create Grand-Mean Centered Vars (Score - grand mean: How different is given score from sample?)
+    a_Fkm_GMC = scale(a_Fkm, center = T, scale = F),
+    p_Fkm_GMC = scale(p_Fkm, center = T, scale = F),
+    a_Fppr_GMC = scale(a_Fppr, center = T, scale = F),
+    p_Fppr_GMC = scale(p_Fppr, center = T, scale = F),
+    a_Fpa_GMC = scale(a_Fpa, center = T, scale = F),
+    p_Fpa_GMC = scale(p_Fpa, center = T, scale = F),
+    #Create Within-Person Centered Vars (Score - person mean score: How different is given score from person's average?)
+    a_Fkm_WPC = a_Fkm - a_Fkm_pm,
+    p_Fkm_WPC = p_Fkm - p_Fkm_pm,
+    a_Fppr_WPC = a_Fppr - a_Fppr_pm,
+    p_Fppr_WPC = p_Fppr - p_Fppr_pm,
+    a_Fpa_WPC = a_Fpa - a_Fpa_pm,
+    p_Fpa_WPC = p_Fpa - p_Fpa_pm,
+    #Create Between-Person Centered Vars (GMC - WPC, equation as per Bolger & Laurenceau (2013): How different is person from sample?)
+    a_Fkm_BPC = a_Fkm_GMC - a_Fkm_WPC,
+    p_Fkm_BPC = p_Fkm_GMC - p_Fkm_WPC,
+    a_Fppr_BPC = a_Fppr_GMC - a_Fppr_WPC,
+    p_Fppr_BPC = p_Fppr_GMC - p_Fppr_WPC,
+    a_Fpa_BPC = a_Fpa_GMC - a_Fpa_WPC,
+    p_Fpa_BPC = p_Fpa_GMC - p_Fpa_WPC
+    )
+```
+
+##### Previous Day Add
+```{r}
+PairwiseFpa <- 
+PairwiseFpa |> 
+  group_by(pID) |> 
+  mutate(
+    a_Fkm_WPC_prev = a_Fkm_WPC[match(day - 1, day)],
+    p_Fkm_WPC_prev = p_Fkm_WPC[match(day - 1, day)],
+    a_Fppr_WPC_prev = a_Fppr_WPC[match(day - 1, day)],
+    p_Fppr_WPC_prev = p_Fppr_WPC[match(day - 1, day)],
+    a_Fpa_WPC_prev = a_Fpa_WPC[match(day - 1, day)],
+    p_Fpa_WPC_prev = p_Fpa_WPC[match(day - 1, day)],
+  ) |> 
+  ungroup()
+```
+
+### Testing PA
+##### Correlations
+
+
+```{r}
+#Within person fluctuations
+PairwiseFpa |> 
+  select(a_Fkm_WPC, p_Fkm_WPC, a_Fppr_WPC, p_Fppr_WPC, a_Fpa_WPC, p_Fpa_WPC) |> 
+  psych::pairs.panels(ci = T)
+
+```
+Big KM PA correlation. Again, KM seems to be a very positive experience--days I felt more positive than usual also were high KM days
+```{r}
+cor.test(PairwiseFpa$a_Fkm_WPC, PairwiseF$p_Fkm_WPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fkm_WPC, PairwiseF$a_Fppr_WPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fkm_WPC, PairwiseF$p_Fppr_WPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fppr_WPC, PairwiseF$p_Fppr_WPC, conf.level = .95)
+
+# PA
+cor.test(PairwiseFpa$a_Fpa_WPC, PairwiseF$a_Fkm_WPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fpa_WPC, PairwiseF$a_Fppr_WPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fkm_WPC, PairwiseF$p_Fpa_WPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fppr_WPC, PairwiseF$p_Fpa_WPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fpa_WPC, PairwiseF$p_Fpa_WPC, conf.level = .95)
+
+```
 
 
 
 
+```{r}
+#Between person fluctuations
+PairwiseFpa |> 
+  select(a_Fkm_BPC, p_Fkm_BPC, a_Fppr_BPC, p_Fppr_BPC, a_Fpa_BPC, p_Fpa_BPC) |> 
+  psych::pairs.panels(ci = T)
+```
+More big corrs here for PA. People who experience PA more often also experience more KM and PPR. 
+
+```{r}
+cor.test(PairwiseFpa$a_Fkm_BPC, PairwiseF$p_Fkm_BPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fkm_BPC, PairwiseF$a_Fppr_BPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fkm_BPC, PairwiseF$p_Fppr_BPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fppr_BPC, PairwiseF$p_Fppr_BPC, conf.level = .95)
+
+# PA
+cor.test(PairwiseFpa$a_Fpa_BPC, PairwiseF$a_Fkm_BPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fpa_BPC, PairwiseF$a_Fppr_BPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fkm_BPC, PairwiseF$p_Fpa_BPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fppr_BPC, PairwiseF$p_Fpa_BPC, conf.level = .95)
+cor.test(PairwiseFpa$a_Fpa_BPC, PairwiseF$p_Fpa_BPC, conf.level = .95)
+```
 
 
 
 
+###### KM Outcome
+```{r}
+m.kmPA <- lmer(a_Fkm_WPC ~ COND + day + #standard controls
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fpa_WPC_prev + p_Fpa_WPC_prev + #NEW, PA covariate from previous day  
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner predictor between person, stable trait-like influence
+               a_Fpa_BPC + p_Fpa_BPC + #NEW, PA stable influence
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = PairwiseFpa)
+summary(m.kmPA) #WOOO! Findings don't change. Effects decrease a SMIDGE but don't meaningfully change. PA is also non sig
+confint(m.kmPA)
+```
+
+###### PPR Outcome
+
+```{r}
+m.pprPA <- lmer(a_Fppr_WPC ~ COND + day + #standard controls
+               a_Fppr_WPC_prev + p_Fppr_WPC_prev + #actor and partner previous outcome fluctuations
+               a_Fkm_WPC_prev + p_Fkm_WPC_prev + #actor and partner previous predictor fluctuations
+               a_Fpa_WPC_prev + p_Fpa_WPC_prev + #NEW, PA covariate from previous day  
+               a_Fppr_BPC + p_Fppr_BPC + #actor and partner outcome between person, stable trait-like influence
+               a_Fkm_BPC + p_Fkm_BPC + #actor and partner predictor between person, stable trait-like influence
+               a_Fpa_BPC + p_Fpa_BPC + #NEW, PA stable influence
+               (1| cID) + (1|pID), #Random effect structure
+             control=lmerControl(optimizer = "bobyqa"),
+             data = PairwiseFpa)
+summary(m.pprPA)#WOOO! Findings don't change. Partner effect actually is BIGGER than main results. PA is also non sig
+confint(m.pprPA)
+```
 
 
-
-
+Results don't change. This is also probably a testament to the RICLPM b/n, w/n disaggregation. Its a robust model that SHOULDNT change much with covariates, which makes me even less concerned with S3 not being able to accomodate. 
 
 
 
